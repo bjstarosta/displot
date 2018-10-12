@@ -5,7 +5,8 @@
 # It must be run from its own directory (CWD=.) so that the relative paths
 # resolve as they're supposed to.
 #
-# Needs pyqt5-dev-tools if you're on *buntu, and equivalent everywhere else.
+# Needs pyqt5-dev-tools if you're on *buntu, and equivalent (that contains
+# pyuic5) everywhere else.
 
 DIR="../displot/ui_def/"
 PY_INIT=$DIR"__init__.py"
