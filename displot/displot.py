@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+import os
 from ui import DisplotUi
 from imageutils import Image
 
@@ -10,7 +12,11 @@ displotInfo = {
 UI = DisplotUi(displotInfo)
 
 def imageOpen():
-    UI.imageTabOpen()
+    filePath = UI.imageFileDlgOpen()
+    if filePath == False:
+        return
+    image = Image(filePath)
+    UI.imageTabOpen(image, os.path.basename(filePath))
 
 def main():
     # Setup common events

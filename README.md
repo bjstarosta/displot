@@ -31,6 +31,12 @@ Alternatively, to use the package from within the cloned directory:
 $ python setup.py develop
 ```
 
+## Built With
+
+* [Python 3](https://www.python.org/)
+* [Qt 5](http://doc.qt.io/qt-5/qt5-intro.html) - Using the [PyQt5](https://pypi.org/project/PyQt5/) bindings
+* [Qt Designer](http://doc.qt.io/qt-5/qtdesigner-manual.html) - Recommended for editing layouts
+
 ## Versioning
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags).

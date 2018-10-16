@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import sys
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 from uiDefs import *
+
 
 class DisplotUi(object):
     """Singleton object responsible for UI operations.
@@ -54,19 +54,28 @@ class DisplotUi(object):
     def setStatusBar(self, message=""):
         self.window.statusBar().showMessage(message)
 
-    def imageTabOpen(self):
-        options = QtWidgets.QFileDialog.Options()
-        options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self.window, "QFileDialog.getOpenFileName()", "", "All Files (*);;Python Files (*.py)", options=options)
+    def imageFileDlgOpen(self):
+        dlg = QtWidgets.QFileDialog(self.window, 'Open image')
+        dlg.setOption(QtWidgets.QFileDialog.DontUseNativeDialog)
+        dlg.setFileMode(QtWidgets.QFileDialog.ExistingFile)
+        #dlg.setFilter(QtCore.QDir.AllEntries | QtCore.QDir.NoDotAndDotDot)
+        dlg.setNameFilters(['Image files (*.tif)', 'All files (*)'])
 
+        if dlg.exec_() == QtWidgets.QDialog.Accepted:
+            return dlg.selectedFiles()[0]
+        else:
+            return False
+
+    def imageTabOpen(self, imageHandle, tabName="No image"):
         imageTab = ImageTab(self.tabWidget, self.imageTabUi)
-        imageTab.open()
+        imageTab.open(imageHandle, tabName)
         self.imageTabs.append(imageTab)
 
     def imageTabClose(self, index):
         imageTab = self.imageTabFind(index)
         if isinstance(imageTab, ImageTab):
             imageTab.close()
+        # TODO: CLEAN UP!!!!!!!
 
     def imageTabFind(self, index):
         """Finds the ImageTab object corresponding with the tab at specified index.
@@ -85,6 +94,7 @@ class ImageTab(QtWidgets.QWidget):
 
     Attributes:
         opened: Returns True if the open() method was called, False otherwise.
+        imageHandle: An Image() object reference (see imageutils.py).
         widgetIndex: Current index of the tab in the tabWidget object.
             Note that the index isn't static and can change based on tabs
             being dragged around.
@@ -92,17 +102,32 @@ class ImageTab(QtWidgets.QWidget):
 
     def __init__(self, tabWidgetRef, layoutRef):
         QtWidgets.QWidget.__init__(self)
-
-        self.opened = False
-        self._tabWidget = tabWidgetRef
-
         layoutRef.setupUi(self)
 
-    def open(self, imageHandle, tabName="No image"):
+        self.opened = False
+        self.imageHandle = False
+
+        self._imageScene = QtWidgets.QGraphicsScene()
+        self._imageView = self.findChild(QtWidgets.QGraphicsView, "imageView")
+        self._imageView.setScene(self._imageScene)
+        self._minimapView = self.findChild(QtWidgets.QGraphicsView, "minimap")
+        self._minimapView.setScene(self._imageScene)
+        self._qPixMap = False
+        self._qImage = False
+
+        self._tabWidget = tabWidgetRef
+
+    def open(self, imageHandle, tabName):
         if self.opened == True:
             return
         self._tabWidget.addTab(self, tabName)
         self._tabWidget.setCurrentIndex(self.widgetIndex)
+
+        self.imageHandle = imageHandle
+
+        self._qImage = self._grayscale2QImage(self.imageHandle.data)
+        self.redrawImage()
+
         self.opened = True
 
     def close(self):
@@ -110,9 +135,33 @@ class ImageTab(QtWidgets.QWidget):
             return
         self._tabWidget.removeTab(self.widgetIndex)
 
-    def setTabLabel(self, label, opts):
+    def redrawImage(self):
+        self._qPixMap = QtGui.QPixmap.fromImage(self._qImage)
+        self._imageScene.addPixmap(self._qPixMap)
+        self._imageView.show()
+        #self._minimapView.fitInView(QtCore.QRectF())
+        self._minimapView.show()
+
+    def setTabLabel(self, label):
         self._tabWidget.setTabText(self.widgetIndex, label)
 
     @property
     def widgetIndex(self):
         return self._tabWidget.indexOf(self)
+
+    def _grayscale2QImage(self, imageData):
+        h, w = imageData.shape
+        result = QtGui.QImage(w, h, QtGui.QImage.Format_Indexed8)
+
+        for i in range(256):
+            result.setColor(i, QtGui.qRgb(i,i,i))
+
+        y = 0
+        for xRow in imageData:
+            x = 0
+            for color in xRow:
+                result.setPixel(x, y, color)
+                x += 1
+            y += 1
+
+        return result
