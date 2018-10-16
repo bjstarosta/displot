@@ -2,7 +2,7 @@
 import sys
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from ui_def import *
+from uiDefs import *
 
 class DisplotUi(object):
     """Singleton object responsible for UI operations.
@@ -13,25 +13,20 @@ class DisplotUi(object):
         appTitle: String defining the window title
     """
 
-    def __init__(self, infoDict):
+    def __init__(self, infoDict={}):
         self.app = QtWidgets.QApplication(sys.argv)
         self.window = QtWidgets.QMainWindow()
 
-        # Load UI defs here
-        self._windowUi = ui_displot.Ui_MainWindow()
-        self._windowUi.setupUi(self.window)
-        self._aboutUi = ui_displot_about.Ui_AboutDialog()
-        self._imageTabUi = ui_displot_image.Ui_ImageTabPrototype()
-
-        # Reference important UI objects
-        self.windowTabs = self._windowUi.tabWidget
         self.imageTabs = []
 
-        # Setup common events
-        self.windowTabs.tabBarClicked.connect(self._evTabBarClicked)
+        # Load UI defs here
+        self.windowUi = ui_displot.Ui_MainWindow()
+        self.windowUi.setupUi(self.window)
+        self.aboutUi = ui_displot_about.Ui_AboutDialog()
+        self.imageTabUi = ui_displot_image.Ui_ImageTabPrototype()
 
-        self._windowUi.actionOpenImage.triggered.connect(self.imageTabOpen)
-        self._windowUi.actionExit.triggered.connect(self.exit)
+        # Reference important UI objects
+        self.tabWidget = self.windowUi.tabWidget
 
         self.appTitle = infoDict['appTitle']
         self.appVersion = infoDict['appVersion']
@@ -56,23 +51,68 @@ class DisplotUi(object):
         title = title + curFile + ']'
         self.window.setWindowTitle(title)
 
-    def setStatusBar(self, message):
+    def setStatusBar(self, message=""):
         self.window.statusBar().showMessage(message)
 
     def imageTabOpen(self):
-        imageTab = QtWidgets.QWidget()
-        self._imageTabUi.setupUi(imageTab)
-        self.windowTabs.addTab(imageTab, "No Image")
-        self.setStatusBar(str(self.windowTabs.currentIndex()) + ' ' + str(self.windowTabs.indexOf(imageTab)))
-        self.windowTabs.setCurrentIndex(self.windowTabs.indexOf(imageTab))
-        #self.windowTabs.setTabText(self.windowTabs.indexOf(imageTab), "No Image")
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self.window, "QFileDialog.getOpenFileName()", "", "All Files (*);;Python Files (*.py)", options=options)
 
-    def imageTabClose(self):
-        #self.windowTabs.removeTab(self.windowTabs.indexOf(self._windowUi.imageTab))
-        pass
+        imageTab = ImageTab(self.tabWidget, self.imageTabUi)
+        imageTab.open()
+        self.imageTabs.append(imageTab)
 
-    def _evTabBarClicked(self, index):
-        if index == 0:
-            self.imageTabOpen()
-        else:
-            pass
+    def imageTabClose(self, index):
+        imageTab = self.imageTabFind(index)
+        if isinstance(imageTab, ImageTab):
+            imageTab.close()
+
+    def imageTabFind(self, index):
+        """Finds the ImageTab object corresponding with the tab at specified index.
+
+        Returns either an ImageTab object or False if no corresponding object
+        was found.
+        """
+        for o in self.imageTabs:
+            if o.widgetIndex == index:
+                return o
+        return False
+
+
+class ImageTab(QtWidgets.QWidget):
+    """Tab widget container.
+
+    Attributes:
+        opened: Returns True if the open() method was called, False otherwise.
+        widgetIndex: Current index of the tab in the tabWidget object.
+            Note that the index isn't static and can change based on tabs
+            being dragged around.
+    """
+
+    def __init__(self, tabWidgetRef, layoutRef):
+        QtWidgets.QWidget.__init__(self)
+
+        self.opened = False
+        self._tabWidget = tabWidgetRef
+
+        layoutRef.setupUi(self)
+
+    def open(self, imageHandle, tabName="No image"):
+        if self.opened == True:
+            return
+        self._tabWidget.addTab(self, tabName)
+        self._tabWidget.setCurrentIndex(self.widgetIndex)
+        self.opened = True
+
+    def close(self):
+        if self.opened == False:
+            return
+        self._tabWidget.removeTab(self.widgetIndex)
+
+    def setTabLabel(self, label, opts):
+        self._tabWidget.setTabText(self.widgetIndex, label)
+
+    @property
+    def widgetIndex(self):
+        return self._tabWidget.indexOf(self)

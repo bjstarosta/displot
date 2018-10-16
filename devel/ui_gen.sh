@@ -8,7 +8,7 @@
 # Needs pyqt5-dev-tools if you're on *buntu, and equivalent (that contains
 # pyuic5) everywhere else.
 
-DIR="../displot/ui_def/"
+DIR="../displot/uiDefs/"
 PY_INIT=$DIR"__init__.py"
 PREFIX="ui_"
 
