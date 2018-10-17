@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-import os
-from ui import DisplotUi
-from imageutils import Image
+if __name__ == '__main__':
+    import os
+    from ui import DisplotUi
+    from imageutils import Image
 
 
 displotInfo = {
@@ -9,7 +10,8 @@ displotInfo = {
     'appVersion': 'pre-alpha'
 }
 
-UI = DisplotUi(displotInfo)
+if __name__ == '__main__':
+    UI = DisplotUi(displotInfo)
 
 def imageOpen():
     filePath = UI.imageFileDlgOpen()
@@ -17,10 +19,12 @@ def imageOpen():
         return
     image = Image(filePath)
     UI.imageTabOpen(image, os.path.basename(filePath))
+    UI.updateWindowTitle()
 
 def main():
     # Setup common events
     UI.tabWidget.tabCloseRequested.connect(UI.imageTabClose)
+    UI.tabWidget.currentChanged.connect(UI.updateWindowTitle)
 
     UI.windowUi.actionOpenImage.triggered.connect(imageOpen)
     UI.windowUi.actionCloseImage.triggered.connect(UI.imageTabClose)

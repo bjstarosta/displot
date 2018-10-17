@@ -30,7 +30,7 @@ class DisplotUi(object):
 
         self.appTitle = infoDict['appTitle']
         self.appVersion = infoDict['appVersion']
-        self.setWindowTitle()
+        self.updateWindowTitle()
 
     def run(self):
         """Run this method to show the GUI, then block until window is closed.
@@ -44,15 +44,20 @@ class DisplotUi(object):
         """Exits the program."""
         self.app.quit()
 
-    def setWindowTitle(self, curFile=False):
-        title = self.appTitle + ' v.' + self.appVersion + ' - ['
-        if curFile == False:
-            curFile = 'No image'
-        title = title + curFile + ']'
-        self.window.setWindowTitle(title)
-
     def setStatusBar(self, message=""):
         self.window.statusBar().showMessage(message)
+
+    def updateWindowTitle(self):
+        title = self.appTitle + ' v.' + self.appVersion + ' - ['
+        it = self.imageTabFind(self.tabWidget.currentIndex())
+
+        if it == False:
+            curFile = 'No image'
+        else:
+            curFile = it.filePath
+
+        title = title + curFile + ']'
+        self.window.setWindowTitle(title)
 
     def imageFileDlgOpen(self):
         dlg = QtWidgets.QFileDialog(self.window, 'Open image')
@@ -67,15 +72,16 @@ class DisplotUi(object):
             return False
 
     def imageTabOpen(self, imageHandle, tabName="No image"):
-        imageTab = ImageTab(self.tabWidget, self.imageTabUi)
-        imageTab.open(imageHandle, tabName)
-        self.imageTabs.append(imageTab)
+        it = ImageTab(self.tabWidget, self.imageTabUi)
+        it.open(imageHandle, tabName)
+        self.imageTabs.append(it)
 
     def imageTabClose(self, index):
-        imageTab = self.imageTabFind(index)
-        if isinstance(imageTab, ImageTab):
-            imageTab.close()
-        # TODO: CLEAN UP!!!!!!!
+        it = self.imageTabFind(index)
+        if not isinstance(it, ImageTab):
+            return
+        it.close()
+        self.imageTabs.remove(it)
 
     def imageTabFind(self, index):
         """Finds the ImageTab object corresponding with the tab at specified index.
@@ -83,6 +89,9 @@ class DisplotUi(object):
         Returns either an ImageTab object or False if no corresponding object
         was found.
         """
+        if index == -1:
+            return False
+
         for o in self.imageTabs:
             if o.widgetIndex == index:
                 return o
@@ -138,12 +147,34 @@ class ImageTab(QtWidgets.QWidget):
     def redrawImage(self):
         self._qPixMap = QtGui.QPixmap.fromImage(self._qImage)
         self._imageScene.addPixmap(self._qPixMap)
-        self._imageView.show()
+
         #self._minimapView.fitInView(QtCore.QRectF())
+        #rect1 = self._minimapView.viewport().rect()
+        #print(rect1)
+        #rect = self._minimapView.mapToScene(self._minimapView.viewport().rect()).boundingRect();
+        #print(rect)
+        #self._minimapView.fitInView(rect)
+
+        rect = self._minimapView.rect()
+        h, w = self.imageHandle.data.shape
+        w_ratio = self._minimapView.rect().width() / w
+        h_ratio = self._minimapView.rect().height() / h
+        if w_ratio > h_ratio:
+            ratio = h_ratio
+        else:
+            ratio = w_ratio
+        ratio = ratio * 0.95
+        self._minimapView.scale(ratio, ratio)
+
         self._minimapView.show()
+        self._imageView.show()
 
     def setTabLabel(self, label):
         self._tabWidget.setTabText(self.widgetIndex, label)
+
+    @property
+    def filePath(self):
+        return self.imageHandle.filePath
 
     @property
     def widgetIndex(self):

@@ -14,6 +14,7 @@ class Image(object):
 
     def __init__(self, filePath=""):
         self.data = False
+        self.filePath = False
 
         if filePath != '':
             self.load(filePath)
