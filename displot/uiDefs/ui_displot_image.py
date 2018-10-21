@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file './displot_image.ui'
 #
-# Created by: PyQt5 UI code generator 5.10.1
+# Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -27,7 +27,7 @@ class Ui_ImageTabPrototype(object):
         self.splitter.setSizePolicy(sizePolicy)
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
         self.splitter.setObjectName("splitter")
-        self.imageView = QtWidgets.QGraphicsView(self.splitter)
+        self.imageView = WorkImageView(self.splitter)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(5)
         sizePolicy.setVerticalStretch(0)
@@ -60,7 +60,7 @@ class Ui_ImageTabPrototype(object):
         self.toolBox.setSizePolicy(sizePolicy)
         self.toolBox.setObjectName("toolBox")
         self.labelledItems = QtWidgets.QWidget()
-        self.labelledItems.setGeometry(QtCore.QRect(0, 0, 282, 247))
+        self.labelledItems.setGeometry(QtCore.QRect(0, 0, 282, 241))
         self.labelledItems.setObjectName("labelledItems")
         self.toolBoxLayout = QtWidgets.QHBoxLayout(self.labelledItems)
         self.toolBoxLayout.setContentsMargins(0, 0, 0, 3)
@@ -97,7 +97,7 @@ class Ui_ImageTabPrototype(object):
         self.label_minimap = QtWidgets.QLabel(self.sidebar)
         self.label_minimap.setObjectName("label_minimap")
         self.sidebarLayout.addWidget(self.label_minimap)
-        self.minimap = QtWidgets.QGraphicsView(self.sidebar)
+        self.minimap = MinimapView(self.sidebar)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(2)
@@ -107,6 +107,8 @@ class Ui_ImageTabPrototype(object):
         self.minimap.setMaximumSize(QtCore.QSize(300, 200))
         self.minimap.setBaseSize(QtCore.QSize(0, 0))
         self.minimap.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.minimap.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.minimap.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.minimap.setObjectName("minimap")
         self.sidebarLayout.addWidget(self.minimap)
         self.viewTools = QtWidgets.QWidget(self.sidebar)
@@ -168,3 +170,4 @@ class Ui_ImageTabPrototype(object):
         self.zoomDial.setSuffix(_translate("ImageTabPrototype", "%"))
         self.imageInfoLabel.setText(_translate("ImageTabPrototype", "No image loaded"))
 
+from ui_tabwidgets import MinimapView, WorkImageView

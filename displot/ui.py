@@ -45,9 +45,11 @@ class DisplotUi(object):
         self.app.quit()
 
     def setStatusBar(self, message=""):
+        """Shows a short message in the status bar at the bottom of the window."""
         self.window.statusBar().showMessage(message)
 
     def updateWindowTitle(self):
+        """Updates the windowbar title to reflect the currently focused image file."""
         title = self.appTitle + ' v.' + self.appVersion + ' - ['
         it = self.imageTabFind(self.tabWidget.currentIndex())
 
@@ -60,6 +62,10 @@ class DisplotUi(object):
         self.window.setWindowTitle(title)
 
     def imageFileDlgOpen(self):
+        """Opens a file browser dialog used for selecting an image file to be
+        opened. Returns either a file path string or False if the dialog was
+        cancelled.
+        """
         dlg = QtWidgets.QFileDialog(self.window, 'Open image')
         dlg.setOption(QtWidgets.QFileDialog.DontUseNativeDialog)
         dlg.setFileMode(QtWidgets.QFileDialog.ExistingFile)
@@ -72,13 +78,26 @@ class DisplotUi(object):
             return False
 
     def imageTabOpen(self, imageHandle, tabName="No image"):
+        """Creates and focuses a new tab in the tab widget using the specified
+        image file.
+
+        Attributes:
+            imageHandle: An Image() object reference (see imageutils.py).
+            tabName: A text string to be shown as the tab label.
+        """
         it = ImageTab(self.tabWidget, self.imageTabUi)
         it.open(imageHandle, tabName)
         self.imageTabs.append(it)
 
     def imageTabClose(self, index):
+        """Closes the tab specified by the index argument.
+
+        Attributes:
+            index: An integer specifying the index of the tab to close from
+                the left-hand side.
+        """
         it = self.imageTabFind(index)
-        if not isinstance(it, ImageTab):
+        if not isinstance(it, QtWidgets.QWidget):
             return
         it.close()
         self.imageTabs.remove(it)
@@ -116,15 +135,22 @@ class ImageTab(QtWidgets.QWidget):
         self.opened = False
         self.imageHandle = False
 
+        self._qPixMap = False
+        self._qImage = False
+        self._tabWidget = tabWidgetRef
+
+        # Init main image view layout objects
         self._imageScene = QtWidgets.QGraphicsScene()
         self._imageView = self.findChild(QtWidgets.QGraphicsView, "imageView")
         self._imageView.setScene(self._imageScene)
-        self._minimapView = self.findChild(QtWidgets.QGraphicsView, "minimap")
-        self._minimapView.setScene(self._imageScene)
-        self._qPixMap = False
-        self._qImage = False
+        self._imageView.imageTab = self
+        self._imageView.initEvents()
 
-        self._tabWidget = tabWidgetRef
+        # Init minimap layout objects
+        self._minimapScene = QtWidgets.QGraphicsScene()
+        self._minimapView = self.findChild(QtWidgets.QGraphicsView, "minimap")
+        self._minimapView.setScene(self._minimapScene)
+        self._minimapView.imageTab = self
 
     def open(self, imageHandle, tabName):
         if self.opened == True:
@@ -134,8 +160,26 @@ class ImageTab(QtWidgets.QWidget):
 
         self.imageHandle = imageHandle
 
+        # Init the image holding pixmap items in the main view and the minimap
         self._qImage = self._grayscale2QImage(self.imageHandle.data)
+        self._qPixMap = QtGui.QPixmap.fromImage(self._qImage)
+        self._imageScenePixmap = self._imageScene.addPixmap(self._qPixMap)
+        self._minimapScenePixmap = self._minimapScene.addPixmap(self._qPixMap)
+        # Call a redraw to make sure all the dimensions are set correctly
         self.redrawImage()
+
+        self._minimapView.show()
+        self._imageView.show()
+
+        self._minimapView.drawViewbox()
+
+        # Populate the infobox
+        ibText = '"' + imageHandle.filePath + '"'
+        ibText += ' [W:' + str(imageHandle.imageDim[0])
+        ibText += ', H:' + str(imageHandle.imageDim[1]) + ']'
+        ibText += ' [' + imageHandle.fileSize + ']'
+        infoBox = self.findChild(QtWidgets.QLabel, "imageInfoLabel")
+        infoBox.setText(ibText)
 
         self.opened = True
 
@@ -146,28 +190,13 @@ class ImageTab(QtWidgets.QWidget):
 
     def redrawImage(self):
         self._qPixMap = QtGui.QPixmap.fromImage(self._qImage)
-        self._imageScene.addPixmap(self._qPixMap)
+        self._imageScenePixmap.setPixmap(self._qPixMap)
+        self._minimapScenePixmap.setPixmap(self._qPixMap)
 
-        #self._minimapView.fitInView(QtCore.QRectF())
-        #rect1 = self._minimapView.viewport().rect()
-        #print(rect1)
-        #rect = self._minimapView.mapToScene(self._minimapView.viewport().rect()).boundingRect();
-        #print(rect)
-        #self._minimapView.fitInView(rect)
-
-        rect = self._minimapView.rect()
-        h, w = self.imageHandle.data.shape
-        w_ratio = self._minimapView.rect().width() / w
-        h_ratio = self._minimapView.rect().height() / h
-        if w_ratio > h_ratio:
-            ratio = h_ratio
-        else:
-            ratio = w_ratio
-        ratio = ratio * 0.95
-        self._minimapView.scale(ratio, ratio)
-
-        self._minimapView.show()
-        self._imageView.show()
+        #self._minimapView.fitInView(self._imageScene.itemsBoundingRect(),
+        #    QtCore.Qt.KeepAspectRatio)
+        ratio = self._minimapView.getMinimapRatio()
+        self._minimapScenePixmap.setScale(ratio)
 
     def setTabLabel(self, label):
         self._tabWidget.setTabText(self.widgetIndex, label)
@@ -182,17 +211,18 @@ class ImageTab(QtWidgets.QWidget):
 
     def _grayscale2QImage(self, imageData):
         h, w = imageData.shape
-        result = QtGui.QImage(w, h, QtGui.QImage.Format_Indexed8)
+        result = QtGui.QImage(imageData.data, w, h, QtGui.QImage.Format_Indexed8)
+        result.ndarray = imageData
 
         for i in range(256):
             result.setColor(i, QtGui.qRgb(i,i,i))
 
-        y = 0
+        """y = 0
         for xRow in imageData:
             x = 0
             for color in xRow:
                 result.setPixel(x, y, color)
                 x += 1
-            y += 1
+            y += 1"""
 
         return result
