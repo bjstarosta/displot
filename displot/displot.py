@@ -21,8 +21,10 @@ def imageOpen():
     if filePath == False:
         return
     image = Image(filePath)
+    UI.setStatusBar('Loading image file: ' + filePath)
     UI.imageTabOpen(image, os.path.basename(filePath))
     UI.updateWindowTitle()
+    UI.setStatusBar('Done.')
 
 def main():
     # Setup common events
