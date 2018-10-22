@@ -4,7 +4,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from uiDefs import *
 
 
-class DisplotUi(object):
+class DisplotUi(QtWidgets.QMainWindow):
     """Singleton object responsible for UI operations.
 
     Attributes:
@@ -15,18 +15,16 @@ class DisplotUi(object):
 
     def __init__(self, infoDict={}):
         self.app = QtWidgets.QApplication(sys.argv)
-        self.window = QtWidgets.QMainWindow()
+
+        super().__init__()
+
+        self.layout = ui_displot.Ui_MainWindow()
+        self.layout.setupUi(self)
 
         self.imageTabs = []
 
-        # Load UI defs here
-        self.windowUi = ui_displot.Ui_MainWindow()
-        self.windowUi.setupUi(self.window)
-        self.aboutUi = ui_displot_about.Ui_AboutDialog()
-        self.imageTabUi = ui_displot_image.Ui_ImageTabPrototype()
-
         # Reference important UI objects
-        self.tabWidget = self.windowUi.tabWidget
+        self.tabWidget = self.findChild(QtWidgets.QTabWidget, "tabWidget")
 
         self.appTitle = infoDict['appTitle']
         self.appVersion = infoDict['appVersion']
@@ -38,16 +36,16 @@ class DisplotUi(object):
 
         All non-event code running after this method will not execute!
         """
-        self.window.show()
+        self.show()
         sys.exit(self.app.exec_())
 
     def exit(self):
         """Exits the program."""
         self.app.quit()
 
-    def setStatusBar(self, message=""):
+    def setStatusBarMsg(self, message=""):
         """Shows a short message in the status bar at the bottom of the window."""
-        self.window.statusBar().showMessage(message)
+        self.statusBar().showMessage(message)
 
     def updateWindowTitle(self):
         """Updates the windowbar title to reflect the currently focused image file."""
@@ -60,14 +58,14 @@ class DisplotUi(object):
             curFile = it.filePath
 
         title = title + curFile + ']'
-        self.window.setWindowTitle(title)
+        self.setWindowTitle(title)
 
     def imageFileDlgOpen(self):
         """Opens a file browser dialog used for selecting an image file to be
         opened. Returns either a file path string or False if the dialog was
         cancelled.
         """
-        dlg = QtWidgets.QFileDialog(self.window, 'Open image')
+        dlg = QtWidgets.QFileDialog(self, 'Open image')
         dlg.setOption(QtWidgets.QFileDialog.DontUseNativeDialog)
         dlg.setFileMode(QtWidgets.QFileDialog.ExistingFile)
         #dlg.setFilter(QtCore.QDir.AllEntries | QtCore.QDir.NoDotAndDotDot)
@@ -86,7 +84,7 @@ class DisplotUi(object):
             imageHandle: An Image() object reference (see imageutils.py).
             tabName: A text string to be shown as the tab label.
         """
-        it = ImageTab(self.tabWidget, self.imageTabUi)
+        it = ImageTab(self.tabWidget)
         it.open(imageHandle, tabName)
         self.imageTabs.append(it)
 
@@ -118,19 +116,28 @@ class DisplotUi(object):
         return False
 
     def openAbout(self):
-        dlg = QtWidgets.QDialog()
-        self.aboutUi.setupUi(dlg)
-
-        browser = dlg.findChild(QtWidgets.QTextBrowser, "textBrowser")
-        html = str(browser.toHtml())
-        html = html.replace('{version}', self.appVersion)
-        html = html.replace('{author}', self.info['author'])
-        html = html.replace('{author_email}', self.info['authorEmail'])
-        html = html.replace('{project_page}', self.info['projectPage'])
-        browser.setHtml(html)
-
+        dlg = AboutDialog(self.info)
         dlg.show()
         dlg.exec_()
+
+
+class AboutDialog(QtWidgets.QDialog):
+    """About window object.
+    """
+
+    def __init__(self, infoDict={}):
+        super().__init__()
+
+        self.layout = ui_displot_about.Ui_AboutDialog()
+        self.layout.setupUi(self)
+
+        browser = self.findChild(QtWidgets.QTextBrowser, "textBrowser")
+        html = str(browser.toHtml())
+        html = html.replace('{version}', infoDict['appVersion'])
+        html = html.replace('{author}', infoDict['author'])
+        html = html.replace('{author_email}', infoDict['authorEmail'])
+        html = html.replace('{project_page}', infoDict['projectPage'])
+        browser.setHtml(html)
 
 
 class ImageTab(QtWidgets.QWidget):
@@ -144,9 +151,11 @@ class ImageTab(QtWidgets.QWidget):
             being dragged around.
     """
 
-    def __init__(self, tabWidgetRef, layoutRef):
-        QtWidgets.QWidget.__init__(self)
-        layoutRef.setupUi(self)
+    def __init__(self, tabWidgetRef):
+        super().__init__()
+
+        self.layout = ui_displot_image.Ui_ImageTabPrototype()
+        self.layout.setupUi(self)
 
         self.opened = False
         self.imageHandle = False

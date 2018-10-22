@@ -21,21 +21,21 @@ def imageOpen():
     if filePath == False:
         return
     image = Image(filePath)
-    UI.setStatusBar('Loading image file: ' + filePath)
+    UI.setStatusBarMsg('Loading image file: ' + filePath)
     UI.imageTabOpen(image, os.path.basename(filePath))
     UI.updateWindowTitle()
-    UI.setStatusBar('Done.')
+    UI.setStatusBarMsg('Done.')
 
 def main():
     # Setup common events
     UI.tabWidget.tabCloseRequested.connect(UI.imageTabClose)
     UI.tabWidget.currentChanged.connect(UI.updateWindowTitle)
 
-    UI.windowUi.actionOpenImage.triggered.connect(imageOpen)
-    UI.windowUi.actionCloseImage.triggered.connect(UI.imageTabClose)
-    UI.windowUi.actionExit.triggered.connect(UI.exit)
+    UI.layout.actionOpenImage.triggered.connect(imageOpen)
+    UI.layout.actionCloseImage.triggered.connect(UI.imageTabClose)
+    UI.layout.actionExit.triggered.connect(UI.exit)
 
-    UI.windowUi.actionAbout.triggered.connect(UI.openAbout)
+    UI.layout.actionAbout.triggered.connect(UI.openAbout)
 
     UI.run()
 
