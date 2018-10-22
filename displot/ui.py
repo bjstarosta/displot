@@ -30,6 +30,7 @@ class DisplotUi(object):
 
         self.appTitle = infoDict['appTitle']
         self.appVersion = infoDict['appVersion']
+        self.info = infoDict
         self.updateWindowTitle()
 
     def run(self):
@@ -116,6 +117,21 @@ class DisplotUi(object):
                 return o
         return False
 
+    def openAbout(self):
+        dlg = QtWidgets.QDialog()
+        self.aboutUi.setupUi(dlg)
+
+        browser = dlg.findChild(QtWidgets.QTextBrowser, "textBrowser")
+        html = str(browser.toHtml())
+        html = html.replace('{version}', self.appVersion)
+        html = html.replace('{author}', self.info['author'])
+        html = html.replace('{author_email}', self.info['authorEmail'])
+        html = html.replace('{project_page}', self.info['projectPage'])
+        browser.setHtml(html)
+
+        dlg.show()
+        dlg.exec_()
+
 
 class ImageTab(QtWidgets.QWidget):
     """Tab widget container.
@@ -135,8 +151,10 @@ class ImageTab(QtWidgets.QWidget):
         self.opened = False
         self.imageHandle = False
 
-        self._qPixMap = False
         self._qImage = False
+        self._qPixMap = False
+        self._imageScenePixmap = False
+        self._minimapScenePixmap = False
         self._tabWidget = tabWidgetRef
 
         # Init main image view layout objects
@@ -153,21 +171,14 @@ class ImageTab(QtWidgets.QWidget):
         self._minimapView.imageTab = self
 
     def open(self, imageHandle, tabName):
+        """Sets up the UI for the image referenced in imageHandle."""
         if self.opened == True:
             return
         self._tabWidget.addTab(self, tabName)
         self._tabWidget.setCurrentIndex(self.widgetIndex)
 
         self.imageHandle = imageHandle
-
-        # Init the image holding pixmap items in the main view and the minimap
-        self._qImage = self._grayscale2QImage(self.imageHandle.data)
-        self._qPixMap = QtGui.QPixmap.fromImage(self._qImage)
-        self._imageScenePixmap = self._imageScene.addPixmap(self._qPixMap)
-        self._minimapScenePixmap = self._minimapScene.addPixmap(self._qPixMap)
-        # Call a redraw to make sure all the dimensions are set correctly
         self.redrawImage()
-
         self._minimapView.show()
         self._imageView.show()
 
@@ -184,14 +195,23 @@ class ImageTab(QtWidgets.QWidget):
         self.opened = True
 
     def close(self):
+        """Destroys the tab and cleans up."""
         if self.opened == False:
             return
         self._tabWidget.removeTab(self.widgetIndex)
 
     def redrawImage(self):
+        """If there have been changes to the self.imageHandle object reference,
+        call this function to apply them to the viewports.
+        """
+        self._qImage = self._grayscale2QImage(self.imageHandle.data)
         self._qPixMap = QtGui.QPixmap.fromImage(self._qImage)
-        self._imageScenePixmap.setPixmap(self._qPixMap)
-        self._minimapScenePixmap.setPixmap(self._qPixMap)
+        if isinstance(self._imageScenePixmap, bool):
+            self._imageScenePixmap = self._imageScene.addPixmap(self._qPixMap)
+            self._minimapScenePixmap = self._minimapScene.addPixmap(self._qPixMap)
+        else:
+            self._imageScenePixmap.setPixmap(self._qPixMap)
+            self._minimapScenePixmap.setPixmap(self._qPixMap)
 
         #self._minimapView.fitInView(self._imageScene.itemsBoundingRect(),
         #    QtCore.Qt.KeepAspectRatio)
@@ -211,18 +231,13 @@ class ImageTab(QtWidgets.QWidget):
 
     def _grayscale2QImage(self, imageData):
         h, w = imageData.shape
+
+        # Load data directly from the numpy array into QImage
         result = QtGui.QImage(imageData.data, w, h, QtGui.QImage.Format_Indexed8)
         result.ndarray = imageData
 
+        # Set up the monochrome colour palette
         for i in range(256):
             result.setColor(i, QtGui.qRgb(i,i,i))
-
-        """y = 0
-        for xRow in imageData:
-            x = 0
-            for color in xRow:
-                result.setPixel(x, y, color)
-                x += 1
-            y += 1"""
 
         return result

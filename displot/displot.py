@@ -7,7 +7,10 @@ if __name__ == '__main__':
 
 displotInfo = {
     'appTitle': 'displot',
-    'appVersion': 'pre-alpha'
+    'appVersion': 'pre-alpha',
+    'author': 'Bohdan Starosta',
+    'authorEmail': 'bjstarosta@gmail.com',
+    'projectPage': 'https://github.com/bjstarosta/displot/'
 }
 
 if __name__ == '__main__':
@@ -29,6 +32,8 @@ def main():
     UI.windowUi.actionOpenImage.triggered.connect(imageOpen)
     UI.windowUi.actionCloseImage.triggered.connect(UI.imageTabClose)
     UI.windowUi.actionExit.triggered.connect(UI.exit)
+
+    UI.windowUi.actionAbout.triggered.connect(UI.openAbout)
 
     UI.run()
 

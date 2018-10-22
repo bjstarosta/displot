@@ -2,6 +2,16 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class DisplotGraphicsView(QtWidgets.QGraphicsView):
+    """A common parent class for some of the graphics widgets on the image
+    tabs that implements some common functionality.
+
+    There's no reason to instantiate this as a Qt widget, its only use is for
+    extending other classes.
+
+    Attributes:
+        imageTab: the QWidget object representing the top level parent object
+            of this widget.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -18,6 +28,16 @@ class DisplotGraphicsView(QtWidgets.QGraphicsView):
 
 
 class WorkImageView(DisplotGraphicsView):
+    """A QGraphicsView object responsible for the main image view of the program.
+
+    Note that it is tightly coupled to its parent QWidget object for reasons
+    of UI interaction, but the assignment of its parent object reference cannot
+    happen in the layout definition portion of this program. Hence the need for
+    increased checking.
+
+    Attributes:
+        zoomLevel: a float value indicating the current zoom level of the scene.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -25,10 +45,12 @@ class WorkImageView(DisplotGraphicsView):
         self.zoomLevel = 1
 
     def initEvents(self):
+        """Initialises some UI events. Run this after the image has been loaded."""
         self._zoomDial = self.imageTab.findChild(QtWidgets.QSpinBox, "zoomDial")
         self._zoomDial.valueChanged.connect(self._zoomEv)
 
     def zoom(self, scale):
+        """Zooms the scene according to the passed scale multiplier (float)."""
         self.scale(1 / self.zoomLevel, 1 / self.zoomLevel)
         self.scale(scale, scale)
         self.zoomLevel = scale
@@ -47,6 +69,15 @@ class WorkImageView(DisplotGraphicsView):
 
 
 class MinimapView(DisplotGraphicsView):
+    """A QGraphicsView object responsible for displaying the loaded image minimap.
+
+    Note that it is tightly coupled to its parent QWidget object for reasons
+    of UI interaction, but the assignment of its parent object reference cannot
+    happen in the layout definition portion of this program. Hence the need for
+    increased checking.
+
+
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -55,6 +86,10 @@ class MinimapView(DisplotGraphicsView):
         self._mmBox = False
 
     def getMinimapRatio(self):
+        """Returns a single float representing the ideal scaling ratio for the
+        minimap pixmap with regards to the full sized image. Will always return
+        the smallest ratio if aspect is not preserved.
+        """
         imh = self.imageTab._qImage
 
         w_ratio = self.rect().width() / imh.width()
@@ -74,6 +109,9 @@ class MinimapView(DisplotGraphicsView):
         return self.transform().m11(), self.transform().m22()
 
     def drawViewbox(self):
+        """Draws the rectangle representing the current visible area on the
+        minimap.
+        """
         imv = self.imageTab._imageView
         vpBox = imv.mapToScene(imv.viewport().rect()).boundingRect()
         bgPixmap = self.imageTab._minimapScenePixmap.boundingRect()

@@ -26,6 +26,7 @@ class Ui_AboutDialog(object):
         self.textBrowser.setFrameShadow(QtWidgets.QFrame.Plain)
         self.textBrowser.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.textBrowser.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.textBrowser.setOpenExternalLinks(True)
         self.textBrowser.setObjectName("textBrowser")
         self.verticalLayout.addWidget(self.textBrowser)
         self.closeButton = QtWidgets.QPushButton(AboutDialog)

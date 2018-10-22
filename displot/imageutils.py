@@ -32,9 +32,6 @@ class Image(object):
             #print(tif.info())
             self.data = tif.asarray()
 
-    def resize(self):
-        pass
-
     @property
     def isLoaded(self):
         if self.data == False:

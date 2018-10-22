@@ -11,8 +11,8 @@ if __name__ == '__main__':
        description='Structural dislocation detector.',
        long_description=long_description,
        license="GPLv3",
-       author='Bohdan Starosta',
-       author_email='bjstarosta@gmail.com',
+       author=displotInfo['author'],
+       author_email=displotInfo['authorEmail'],
        packages=['displot'],
        install_requires=[
         'numpy',
