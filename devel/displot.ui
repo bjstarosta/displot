@@ -78,7 +78,7 @@
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -98,27 +98,7 @@
     </property>
     <addaction name="actionAbout"/>
    </widget>
-   <widget class="QMenu" name="menuScan">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="title">
-     <string>Scan</string>
-    </property>
-    <addaction name="actionQuick_scan"/>
-   </widget>
-   <widget class="QMenu" name="menuImage">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="title">
-     <string>Image</string>
-    </property>
-    <addaction name="actionRemove_background"/>
-   </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuImage"/>
-   <addaction name="menuScan"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">

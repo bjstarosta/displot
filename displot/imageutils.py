@@ -29,8 +29,8 @@ class Image(object):
     def load(self, filePath):
         self.filePath = filePath
         with tifffile.TiffFile(filePath) as tif:
-            #print(tif.info())
             self.data = tif.asarray()
+            #print(tif.info())
 
     @property
     def isLoaded(self):
@@ -51,7 +51,19 @@ class Image(object):
             size /= 1024.0
 
     @property
-    def imageDim(self):
+    def dimensions(self):
         if isinstance(self.data, bool):
             return False
-        return self.data.shape[1], self.data.shape[0]
+        return {
+            'w': self.data.shape[1],
+            'h': self.data.shape[0]
+        }
+
+
+class ImageActionList(object):
+
+
+    def __init__(self, imageData, actionLabel, func):
+        self.data = imageData
+        self.label = actionLabel
+        self.func = func

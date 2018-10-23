@@ -82,7 +82,7 @@ class MinimapView(DisplotGraphicsView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._mmPen = QtGui.QPen(QtGui.QColor.fromRgb(255,255,255))
+        self._mmPen = QtGui.QPen(QtGui.QColor.fromRgb(0,255,0))
         self._mmBox = False
 
     def getMinimapRatio(self):

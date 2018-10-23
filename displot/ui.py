@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import sys
+import os, sys
+import imageutils
 from PyQt5 import QtCore, QtGui, QtWidgets
 from uiDefs import *
 
@@ -31,6 +32,17 @@ class DisplotUi(QtWidgets.QMainWindow):
         self.info = infoDict
         self.updateWindowTitle()
 
+        # Setup events
+        self.tabWidget.tabCloseRequested.connect(self.imageTabClose)
+        self.tabWidget.currentChanged.connect(self.updateWindowTitle)
+        self.tabWidget.currentChanged.connect(self.refreshMenus)
+
+        self.layout.actionOpenImage.triggered.connect(self.imageOpen)
+        self.layout.actionCloseImage.triggered.connect(self.imageTabClose)
+        self.layout.actionExit.triggered.connect(self.exit)
+
+        self.layout.actionAbout.triggered.connect(self.openAbout)
+
     def run(self):
         """Run this method to show the GUI, then block until window is closed.
 
@@ -47,6 +59,19 @@ class DisplotUi(QtWidgets.QMainWindow):
         """Shows a short message in the status bar at the bottom of the window."""
         self.statusBar().showMessage(message)
 
+    def refreshMenus(self):
+        if self.tabWidget.currentIndex() == -1:
+            enable = False
+        else:
+            enable = True
+
+        imageMenus = [
+            self.layout.actionSaveImageAs,
+            self.layout.actionCloseImage
+        ]
+        for m in imageMenus:
+            m.setEnabled(enable)
+
     def updateWindowTitle(self):
         """Updates the windowbar title to reflect the currently focused image file."""
         title = self.appTitle + ' v.' + self.appVersion + ' - ['
@@ -59,6 +84,18 @@ class DisplotUi(QtWidgets.QMainWindow):
 
         title = title + curFile + ']'
         self.setWindowTitle(title)
+
+    def imageOpen(self):
+        filePath = self.imageFileDlgOpen()
+        if filePath == False:
+            return
+
+        image = imageutils.Image(filePath)
+
+        self.setStatusBarMsg('Loading image file: ' + filePath)
+        self.imageTabOpen(image, os.path.basename(filePath))
+        self.updateWindowTitle()
+        self.setStatusBarMsg('Done.')
 
     def imageFileDlgOpen(self):
         """Opens a file browser dialog used for selecting an image file to be
@@ -88,14 +125,18 @@ class DisplotUi(QtWidgets.QMainWindow):
         it.open(imageHandle, tabName)
         self.imageTabs.append(it)
 
-    def imageTabClose(self, index):
+    def imageTabClose(self, index=False):
         """Closes the tab specified by the index argument.
 
         Attributes:
             index: An integer specifying the index of the tab to close from
                 the left-hand side.
         """
-        it = self.imageTabFind(index)
+        if index == False:
+            it = self.imageTabCurrent()
+        else:
+            it = self.imageTabFind(index)
+        
         if not isinstance(it, QtWidgets.QWidget):
             return
         it.close()
@@ -114,6 +155,9 @@ class DisplotUi(QtWidgets.QMainWindow):
             if o.widgetIndex == index:
                 return o
         return False
+
+    def imageTabCurrent(self):
+        return self.imageTabFind(self.tabWidget.currentIndex())
 
     def openAbout(self):
         dlg = AboutDialog(self.info)
@@ -159,6 +203,7 @@ class ImageTab(QtWidgets.QWidget):
 
         self.opened = False
         self.imageHandle = False
+        self.imageActions = []
 
         self._qImage = False
         self._qPixMap = False
@@ -195,8 +240,8 @@ class ImageTab(QtWidgets.QWidget):
 
         # Populate the infobox
         ibText = '"' + imageHandle.filePath + '"'
-        ibText += ' [W:' + str(imageHandle.imageDim[0])
-        ibText += ', H:' + str(imageHandle.imageDim[1]) + ']'
+        ibText += ' [W:' + str(imageHandle.dimensions['w'])
+        ibText += ', H:' + str(imageHandle.dimensions['h']) + ']'
         ibText += ' [' + imageHandle.fileSize + ']'
         infoBox = self.findChild(QtWidgets.QLabel, "imageInfoLabel")
         infoBox.setText(ibText)

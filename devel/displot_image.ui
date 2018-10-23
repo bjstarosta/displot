@@ -28,8 +28,26 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>1</number>
+     </property>
+     <property name="midLineWidth">
+      <number>3</number>
+     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="opaqueResize">
+      <bool>true</bool>
+     </property>
+     <property name="handleWidth">
+      <number>6</number>
      </property>
      <widget class="WorkImageView" name="imageView">
       <property name="sizePolicy">
@@ -103,12 +121,18 @@
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <item>
-            <widget class="QListView" name="listItems">
+            <widget class="QTableView" name="listItems">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                <horstretch>0</horstretch>
                <verstretch>2</verstretch>
               </sizepolicy>
+             </property>
+             <property name="horizontalScrollBarPolicy">
+              <enum>Qt::ScrollBarAlwaysOff</enum>
+             </property>
+             <property name="sortingEnabled">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -160,11 +184,27 @@
           </layout>
          </widget>
          <widget class="QWidget" name="imageTools">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>282</width>
+            <height>227</height>
+           </rect>
+          </property>
           <attribute name="label">
            <string>Image tools</string>
           </attribute>
          </widget>
          <widget class="QWidget" name="actions">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>282</width>
+            <height>227</height>
+           </rect>
+          </property>
           <attribute name="label">
            <string>Actions</string>
           </attribute>
