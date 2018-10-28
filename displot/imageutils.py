@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
-import sys
 import os
 import numpy as np
+
+from skimage import feature
+from skimage.morphology import label
+from skimage.measure import regionprops
+from skimage.feature import greycomatrix, greycoprops
 import skimage.external.tifffile as tifffile
 
 
@@ -60,10 +64,19 @@ class Image(object):
         }
 
 
-class ImageActionList(object):
+class ImageRegion(object):
+    def __init__(self, imageHandle, x1, y1, x2, y2):
+        pass
+
+    def move(self, x1, y1, x2=None, y2=None):
+        pass
 
 
-    def __init__(self, imageData, actionLabel, func):
-        self.data = imageData
-        self.label = actionLabel
-        self.func = func
+def edgeDetection():
+    pass
+
+def discriminateLabels():
+    pass
+
+def testGLCM():
+    pass

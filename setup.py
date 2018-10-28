@@ -1,18 +1,18 @@
 if __name__ == '__main__':
     from setuptools import setup
-    from displot.displot import displotInfo
+    from displot.displot import displot_info
 
     with open("README.md", 'r') as f:
         long_description = f.read()
 
     setup(
-       name=displotInfo['appTitle'],
-       version=displotInfo['appVersion'],
+       name=displot_info['appTitle'],
+       version=displot_info['appVersion'],
        description='Structural dislocation detector.',
        long_description=long_description,
        license="GPLv3",
-       author=displotInfo['author'],
-       author_email=displotInfo['authorEmail'],
+       author=displot_info['author'],
+       author_email=displot_info['authorEmail'],
        packages=['displot'],
        install_requires=[
         'numpy',

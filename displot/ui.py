@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import os, sys
-import imageutils
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 from uiDefs import *
+
+import imageutils
 
 
 class DisplotUi(QtWidgets.QMainWindow):
@@ -37,7 +39,6 @@ class DisplotUi(QtWidgets.QMainWindow):
         self.tabWidget.currentChanged.connect(self.updateWindowTitle)
         self.tabWidget.currentChanged.connect(self.refreshMenus)
 
-        self.layout.actionOpenImage.triggered.connect(self.imageOpen)
         self.layout.actionCloseImage.triggered.connect(self.imageTabClose)
         self.layout.actionExit.triggered.connect(self.exit)
 
@@ -85,18 +86,6 @@ class DisplotUi(QtWidgets.QMainWindow):
         title = title + curFile + ']'
         self.setWindowTitle(title)
 
-    def imageOpen(self):
-        filePath = self.imageFileDlgOpen()
-        if filePath == False:
-            return
-
-        image = imageutils.Image(filePath)
-
-        self.setStatusBarMsg('Loading image file: ' + filePath)
-        self.imageTabOpen(image, os.path.basename(filePath))
-        self.updateWindowTitle()
-        self.setStatusBarMsg('Done.')
-
     def imageFileDlgOpen(self):
         """Opens a file browser dialog used for selecting an image file to be
         opened. Returns either a file path string or False if the dialog was
@@ -136,7 +125,7 @@ class DisplotUi(QtWidgets.QMainWindow):
             it = self.imageTabCurrent()
         else:
             it = self.imageTabFind(index)
-        
+
         if not isinstance(it, QtWidgets.QWidget):
             return
         it.close()
@@ -203,7 +192,7 @@ class ImageTab(QtWidgets.QWidget):
 
         self.opened = False
         self.imageHandle = False
-        self.imageActions = []
+        self.imageFragments = []
 
         self._qImage = False
         self._qPixMap = False
@@ -295,3 +284,20 @@ class ImageTab(QtWidgets.QWidget):
             result.setColor(i, QtGui.qRgb(i,i,i))
 
         return result
+
+
+class ImageTabRegion(imageutils.ImageRegion):
+    def __init__(self, imageTab, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def show(self):
+        pass
+
+    def hide(self):
+        pass
+
+    def highlight(self):
+        pass
+
+    def centerOn(self):
+        pass
