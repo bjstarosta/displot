@@ -138,6 +138,9 @@ class MinimapView(DisplotGraphicsView):
         if box_h > (max_h - box_y):
             box_h = max_h - box_y - 1
 
+        box_w -= 1
+        box_h -= 1
+
         if self._mmBox == False:
             self._mmBox = self.imageTab._minimapScene.addRect(
                 box_x, box_y, box_w, box_h, self._mmPen);
