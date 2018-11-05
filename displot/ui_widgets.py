@@ -32,8 +32,7 @@ class WorkImageView(DisplotGraphicsView):
 
     Note that it is tightly coupled to its parent QWidget object for reasons
     of UI interaction, but the assignment of its parent object reference cannot
-    happen in the layout definition portion of this program. Hence the need for
-    increased checking.
+    happen in the layout definition portion of this program.
 
     Attributes:
         zoomLevel: a float value indicating the current zoom level of the scene.
@@ -73,10 +72,7 @@ class MinimapView(DisplotGraphicsView):
 
     Note that it is tightly coupled to its parent QWidget object for reasons
     of UI interaction, but the assignment of its parent object reference cannot
-    happen in the layout definition portion of this program. Hence the need for
-    increased checking.
-
-
+    happen in the layout definition portion of this program.
     """
 
     def __init__(self, *args, **kwargs):

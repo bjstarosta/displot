@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import os, sys
+import os, sys, gc
+import numpy as np
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from uiDefs import *
@@ -39,6 +40,7 @@ class DisplotUi(QtWidgets.QMainWindow):
         self.tabWidget.currentChanged.connect(self.updateWindowTitle)
         self.tabWidget.currentChanged.connect(self.refreshMenus)
 
+        self.layout.actionOpenImage.triggered.connect(self.imageTabOpen)
         self.layout.actionCloseImage.triggered.connect(self.imageTabClose)
         self.layout.actionExit.triggered.connect(self.exit)
 
@@ -54,7 +56,11 @@ class DisplotUi(QtWidgets.QMainWindow):
 
     def exit(self):
         """Exits the program."""
+        gc.collect(1)
         self.app.quit()
+
+    def closeEvent(self, ev):
+        self.exit()
 
     def setStatusBarMsg(self, message=""):
         """Shows a short message in the status bar at the bottom of the window."""
@@ -86,6 +92,22 @@ class DisplotUi(QtWidgets.QMainWindow):
         title = title + curFile + ']'
         self.setWindowTitle(title)
 
+    def imageTabOpen(self):
+        """Wrapper method for a few methods in this class. Will launch a file
+        browser dialog to get a file path, then load that file path into a new
+        tab.
+        """
+        filePath = self.imageFileDlgOpen()
+        if filePath == False:
+            return
+
+        image = imageutils.Image(filePath)
+
+        self.setStatusBarMsg('Loading image file: ' + filePath)
+        self.imageTabCreate(image, os.path.basename(filePath))
+        self.updateWindowTitle()
+        self.setStatusBarMsg('Done.')
+
     def imageFileDlgOpen(self):
         """Opens a file browser dialog used for selecting an image file to be
         opened. Returns either a file path string or False if the dialog was
@@ -102,7 +124,7 @@ class DisplotUi(QtWidgets.QMainWindow):
         else:
             return False
 
-    def imageTabOpen(self, imageHandle, tabName="No image"):
+    def imageTabCreate(self, imageHandle, tabName="No image"):
         """Creates and focuses a new tab in the tab widget using the specified
         image file.
 
@@ -110,9 +132,10 @@ class DisplotUi(QtWidgets.QMainWindow):
             imageHandle: An Image() object reference (see imageutils.py).
             tabName: A text string to be shown as the tab label.
         """
-        it = ImageTab(self.tabWidget)
+        it = ImageTab(self, self.tabWidget)
         it.open(imageHandle, tabName)
         self.imageTabs.append(it)
+        return it
 
     def imageTabClose(self, index=False):
         """Closes the tab specified by the index argument.
@@ -173,6 +196,29 @@ class AboutDialog(QtWidgets.QDialog):
         browser.setHtml(html)
 
 
+class GenericDialog(QtWidgets.QDialog):
+    """Generic dialog window object.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+        self.layout = ui_displot_dialog.Ui_DialogBox()
+        self.layout.setupUi(self)
+
+    def setText(self, text):
+        label = self.findChild(QtWidgets.QLabel, "dialogText")
+        label.setText(text)
+
+    def setAccept(self, func):
+        btn = self.findChild(QtWidgets.QDialogButtonBox, "buttonBox")
+        return btn.accepted.connect(func)
+
+    def setReject(self):
+        btn = self.findChild(QtWidgets.QDialogButtonBox, "buttonBox")
+        return btn.rejected.connect(func)
+
+
 class ImageTab(QtWidgets.QWidget):
     """Tab widget container.
 
@@ -184,7 +230,7 @@ class ImageTab(QtWidgets.QWidget):
             being dragged around.
     """
 
-    def __init__(self, tabWidgetRef):
+    def __init__(self, windowRef, tabWidgetRef):
         super().__init__()
 
         self.layout = ui_displot_image.Ui_ImageTabPrototype()
@@ -198,6 +244,7 @@ class ImageTab(QtWidgets.QWidget):
         self._qPixMap = False
         self._imageScenePixmap = False
         self._minimapScenePixmap = False
+        self._window = windowRef
         self._tabWidget = tabWidgetRef
 
         # Init main image view layout objects
@@ -212,6 +259,10 @@ class ImageTab(QtWidgets.QWidget):
         self._minimapView = self.findChild(QtWidgets.QGraphicsView, "minimap")
         self._minimapView.setScene(self._minimapScene)
         self._minimapView.imageTab = self
+
+        # Init button events
+        self._imageScanBtn = self.findChild(QtWidgets.QPushButton, "button_Scan")
+        self._imageScanBtn.clicked.connect(self.scanImage)
 
     def open(self, imageHandle, tabName):
         """Sets up the UI for the image referenced in imageHandle."""
@@ -261,7 +312,85 @@ class ImageTab(QtWidgets.QWidget):
         ratio = self._minimapView.getMinimapRatio()
         self._minimapScenePixmap.setScale(ratio)
 
+    def scanImage(self):
+        """Begins the process of scanning the image for dislocations.
+        Will apply movable region objects to the main graphics view on completion.
+        """
+        self._imageScanBtn.setEnabled(False)
+        self._window.setStatusBarMsg(
+            'Scanning for dislocations... (edge detection)')
+
+        edgeData = imageutils.edgeDetection(
+            image=self.imageHandle.data,
+            sigma=self.findChild(
+                QtWidgets.QDoubleSpinBox,
+                "value_GaussianSigma"
+            ).cleanText(),
+            min_area=self.findChild(
+                QtWidgets.QSpinBox,
+                "value_DiscardLabels"
+            ).cleanText(),
+            margin=self.findChild(
+                QtWidgets.QSpinBox,
+                "value_DiscardMargins"
+            ).cleanText(),
+            region_class=ImageTabRegion
+        )
+
+        self._window.setStatusBarMsg(
+            'Scanning for dislocations... (GLCM)')
+
+        # Generate angle list
+        angles_num = int(self.findChild(
+            QtWidgets.QSpinBox,
+            "value_AnglesCompared"
+        ).cleanText())
+        angles = [0]
+        angles_i = 1
+        while angles_i < angles_num:
+            angles.append((angles_i * np.pi) / angles_num)
+            angles_i += 1
+
+        glcmData = imageutils.testGLCM(
+            image=self.imageHandle.data,
+            region_list=edgeData[0],
+            angles=angles,
+            patch_size=self.findChild(
+                QtWidgets.QSpinBox,
+                "value_PatchSize"
+            ).cleanText(),
+            targets=(
+                self.findChild(
+                    QtWidgets.QDoubleSpinBox,
+                    "value_DissimilarityTarget"
+                ).cleanText(),
+                self.findChild(
+                    QtWidgets.QDoubleSpinBox,
+                    "value_CorrelationTarget"
+                ).cleanText()
+            ),
+            tolerances=(
+                self.findChild(
+                    QtWidgets.QDoubleSpinBox,
+                    "value_DissimilarityTolerance"
+                ).cleanText(),
+                self.findChild(
+                    QtWidgets.QDoubleSpinBox,
+                    "value_CorrelationTolerance"
+                ).cleanText()
+            )
+        )
+
+        self._window.setStatusBarMsg(
+            'Done. {} dislocation candidates found.'.format(len(glcmData[0])))
+        self._imageScanBtn.setEnabled(True)
+
     def setTabLabel(self, label):
+        """Sets the tab label to the specified text.
+
+        Attributes:
+            label: A text string to be inserted into the tab label.
+        """
         self._tabWidget.setTabText(self.widgetIndex, label)
 
     @property
@@ -273,6 +402,12 @@ class ImageTab(QtWidgets.QWidget):
         return self._tabWidget.indexOf(self)
 
     def _grayscale2QImage(self, imageData):
+        """Converts data from a grayscale numpy array into a QImage object for
+        manipulation by Qt.
+
+        Attributes:
+            imageData: numpy ndarray of the image.
+        """
         h, w = imageData.shape
 
         # Load data directly from the numpy array into QImage
@@ -287,17 +422,14 @@ class ImageTab(QtWidgets.QWidget):
 
 
 class ImageTabRegion(imageutils.ImageRegion):
-    def __init__(self, imageTab, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def show(self):
+    def show(self, imageTab):
         pass
 
-    def hide(self):
+    def hide(self, imageTab):
         pass
 
-    def highlight(self):
+    def highlight(self, imageTab):
         pass
 
-    def centerOn(self):
+    def centerOn(self, imageTab):
         pass

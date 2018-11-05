@@ -65,18 +65,102 @@ class Image(object):
 
 
 class ImageRegion(object):
-    def __init__(self, imageHandle, x1, y1, x2, y2):
-        pass
+    def __init__(self, imageHandle, imageRegion):
+        self.image = imageHandle
+        self.label = imageRegion
 
     def move(self, x1, y1, x2=None, y2=None):
         pass
 
 
-def edgeDetection():
-    pass
+def edgeDetection(image, sigma=1., min_area=0, margin=0,
+region_class=ImageRegion):
 
-def discriminateLabels():
-    pass
+    stats = {
+        'minAreaDiscarded': 0,
+        'marginDiscarded': 0
+    }
 
-def testGLCM():
+    if type(sigma) is int or type(sigma) is str:
+        sigma = float(sigma)
+    if type(sigma) is float or type(sigma) is str:
+        min_area = int(min_area)
+    if type(sigma) is float or type(sigma) is str:
+        margin = int(margin)
+
+    edge_detect = feature.canny(image, sigma=sigma)
+    label_image = label(edge_detect)
+    label_regions = regionprops(label_image, coordinates='rc')
+
+    region_list = []
+    for region in label_regions:
+        if region.area < min_area:
+            stats['minAreaDiscarded'] += 1
+            continue
+
+        minr, minc, maxr, maxc = region.bbox
+        margin_r, margin_c = image.shape
+        margin_r = margin_r - margin
+        margin_c = margin_c - margin
+        if minr < margin or minc < margin or maxr > margin_r or maxc > margin_c:
+            stats['marginDiscarded'] += 1
+            continue
+
+        region_obj = region_class(image, region)
+        region_list.append(region_obj)
+
+    return region_list, stats
+
+def testGLCM(image, region_list,
+distances=[4], angles=[0, np.pi/2], patch_size=25,
+targets=(0,0), tolerances=(0,0)):
+
+    stats = {
+        'borderOverlapDiscarded': 0,
+        'GLCMPropsDiscarded': 0
+    }
+
+    if type(patch_size) is float or type(patch_size) is str:
+        patch_size = int(patch_size)
+
+    # Dissimilarity interval
+    d_interval = (
+        float(targets[0]) - float(tolerances[0]),
+        float(targets[0]) + float(tolerances[0])
+    )
+    # Correlation interval
+    c_interval = (
+        float(targets[1]) - float(tolerances[1]),
+        float(targets[1]) + float(tolerances[1])
+    )
+
+    cooccuring_regions = []
+
+    for region in region_list:
+        minr, minc, maxr, maxc = region.label.bbox
+        if (image.shape[1] < (minc + patch_size)
+        or image.shape[0] < (minr + patch_size)):
+            stats['borderOverlapDiscarded'] += 1
+            continue
+        patch = image[minr:minr+patch_size, minc:minc+patch_size]
+
+        glcm = greycomatrix(patch, distances, angles, 256, symmetric=True, normed=True)
+        dissimilarity = greycoprops(glcm, 'dissimilarity')
+        correlation = greycoprops(glcm, 'correlation')
+
+        valid = False
+        for i, x in np.ndenumerate(dissimilarity):
+            if (dissimilarity[i] >= d_interval[0]
+            and dissimilarity[i] <= d_interval[1]
+            and correlation[i] >= c_interval[0]
+            and correlation[i] <= c_interval[1]):
+                cooccuring_regions.append(region)
+                valid = True
+
+        if valid == False:
+            stats['GLCMPropsDiscarded'] += 1
+
+    return cooccuring_regions, stats
+
+def removeOverlap(image, region_list):
     pass

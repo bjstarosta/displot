@@ -104,7 +104,7 @@
            </rect>
           </property>
           <attribute name="label">
-           <string>Image tools</string>
+           <string>Dislocation detection</string>
           </attribute>
           <layout class="QVBoxLayout" name="imageToolsLayout_2">
            <property name="leftMargin">
@@ -153,9 +153,9 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>-177</y>
+                <y>-220</y>
                 <width>260</width>
-                <height>428</height>
+                <height>471</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="imageToolsLayout">
@@ -208,11 +208,13 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>Gaussian sigma
-(increase for less edges)</string>
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Gaussian sigma&lt;br/&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;(increase for less edges)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="wordWrap">
                      <bool>true</bool>
+                    </property>
+                    <property name="buddy">
+                     <cstring>value_GaussianSigma</cstring>
                     </property>
                    </widget>
                   </item>
@@ -237,7 +239,7 @@
                      <double>0.010000000000000</double>
                     </property>
                     <property name="value">
-                     <double>1.650000000000000</double>
+                     <double>1.600000000000000</double>
                     </property>
                    </widget>
                   </item>
@@ -290,7 +292,7 @@
                      <number>1000</number>
                     </property>
                     <property name="value">
-                     <number>10</number>
+                     <number>5</number>
                     </property>
                    </widget>
                   </item>
@@ -303,10 +305,13 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>Discard fragments within pixels of image margin</string>
+                     <string>Discard fragments within image margin of:</string>
                     </property>
                     <property name="wordWrap">
                      <bool>true</bool>
+                    </property>
+                    <property name="buddy">
+                     <cstring>value_DiscardMargins</cstring>
                     </property>
                    </widget>
                   </item>
@@ -328,7 +333,7 @@
                      <number>1000</number>
                     </property>
                     <property name="value">
-                     <number>5</number>
+                     <number>8</number>
                     </property>
                    </widget>
                   </item>
@@ -341,10 +346,13 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>Discard fragments with pixel area less than</string>
+                     <string>Discard fragments with pixel area less than:</string>
                     </property>
                     <property name="wordWrap">
                      <bool>true</bool>
+                    </property>
+                    <property name="buddy">
+                     <cstring>value_DiscardLabels</cstring>
                     </property>
                    </widget>
                   </item>
@@ -390,6 +398,9 @@
                     <property name="wordWrap">
                      <bool>true</bool>
                     </property>
+                    <property name="buddy">
+                     <cstring>value_CorrelationTolerance</cstring>
+                    </property>
                    </widget>
                   </item>
                   <item row="5" column="0" colspan="3">
@@ -399,6 +410,9 @@
                     </property>
                     <property name="wordWrap">
                      <bool>true</bool>
+                    </property>
+                    <property name="buddy">
+                     <cstring>value_DissimilarityTarget</cstring>
                     </property>
                    </widget>
                   </item>
@@ -410,6 +424,9 @@
                     <property name="wordWrap">
                      <bool>true</bool>
                     </property>
+                    <property name="buddy">
+                     <cstring>value_DissimilarityTolerance</cstring>
+                    </property>
                    </widget>
                   </item>
                   <item row="2" column="0" colspan="3">
@@ -419,6 +436,9 @@
                     </property>
                     <property name="wordWrap">
                      <bool>true</bool>
+                    </property>
+                    <property name="buddy">
+                     <cstring>value_CorrelationTarget</cstring>
                     </property>
                    </widget>
                   </item>
@@ -443,7 +463,7 @@
                      <double>0.010000000000000</double>
                     </property>
                     <property name="value">
-                     <double>2.000000000000000</double>
+                     <double>2.500000000000000</double>
                     </property>
                    </widget>
                   </item>
@@ -477,7 +497,7 @@
                      <double>0.010000000000000</double>
                     </property>
                     <property name="value">
-                     <double>20.000000000000000</double>
+                     <double>18.000000000000000</double>
                     </property>
                    </widget>
                   </item>
@@ -496,7 +516,7 @@
                      <double>100.000000000000000</double>
                     </property>
                     <property name="value">
-                     <double>0.100000000000000</double>
+                     <double>0.200000000000000</double>
                     </property>
                    </widget>
                   </item>
@@ -533,6 +553,9 @@
                     <property name="wordWrap">
                      <bool>true</bool>
                     </property>
+                    <property name="buddy">
+                     <cstring>value_PatchSize</cstring>
+                    </property>
                    </widget>
                   </item>
                   <item row="0" column="5">
@@ -548,6 +571,38 @@
                     </property>
                     <property name="value">
                      <number>25</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="label_AnglesCompared">
+                    <property name="text">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Angles of comparison&lt;br/&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;(fractions of π)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                    <property name="buddy">
+                     <cstring>value_AnglesCompared</cstring>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="5">
+                   <widget class="QSpinBox" name="value_AnglesCompared">
+                    <property name="focusPolicy">
+                     <enum>Qt::TabFocus</enum>
+                    </property>
+                    <property name="toolTip">
+                     <string>The script will attempt to compare each flagged area from a number of angles. This number dictates how many angles will be generated, i.e. how many slices Pi should be split up into.</string>
+                    </property>
+                    <property name="minimum">
+                     <number>1</number>
+                    </property>
+                    <property name="maximum">
+                     <number>12</number>
+                    </property>
+                    <property name="value">
+                     <number>2</number>
                     </property>
                    </widget>
                   </item>
@@ -604,7 +659,7 @@
            <item>
             <widget class="QWidget" name="dislocationTools" native="true">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -624,6 +679,18 @@
               </property>
               <item>
                <widget class="QPushButton" name="btnAddDisl">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Add</string>
                 </property>
@@ -631,13 +698,38 @@
               </item>
               <item>
                <widget class="QPushButton" name="btnRemDisl">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Rem</string>
                 </property>
                </widget>
               </item>
               <item>
+               <widget class="QPushButton" name="btnMovDisl">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Mov</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QPushButton" name="btnFindDisl">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Find</string>
                 </property>
