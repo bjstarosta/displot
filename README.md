@@ -8,7 +8,10 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-
+* Python 3
+* Numpy + Scipy + Matplotlib
+* Scikit-image
+* PyQt5
 
 ### Installing
 
@@ -51,4 +54,5 @@ This project is licensed under the GNU GPLv3 License - see the [LICENSE](LICENSE
 
 ## Acknowledgments
 
-* Simon Kraeusel for his original SADC work which inspired this piece of software.
+* Simon Kraeusel for his original SADC work which inspired this piece of software
+* Ben Hourahine for useful discussions and support

@@ -1,4 +1,6 @@
+displot.egg-info
+*__pycache__
 *.pyc
-*~
 *.tif
 *.TIF
+*~
