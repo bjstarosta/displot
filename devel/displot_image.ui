@@ -100,7 +100,7 @@
             <x>0</x>
             <y>0</y>
             <width>282</width>
-            <height>291</height>
+            <height>296</height>
            </rect>
           </property>
           <attribute name="label">
@@ -153,9 +153,9 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>-220</y>
+                <y>-136</y>
                 <width>260</width>
-                <height>471</height>
+                <height>454</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="imageToolsLayout">
@@ -593,7 +593,7 @@
                      <enum>Qt::TabFocus</enum>
                     </property>
                     <property name="toolTip">
-                     <string>The script will attempt to compare each flagged area from a number of angles. This number dictates how many angles will be generated, i.e. how many slices Pi should be split up into.</string>
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The script will attempt to compare each candidate area from a number of angles.&lt;/p&gt;&lt;p&gt;This number dictates how many angles will be generated, i.e. how many slices Pi should be split up into.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="minimum">
                      <number>1</number>
@@ -621,7 +621,7 @@
             <x>0</x>
             <y>0</y>
             <width>282</width>
-            <height>291</height>
+            <height>296</height>
            </rect>
           </property>
           <attribute name="label">
@@ -641,19 +641,45 @@
             <number>3</number>
            </property>
            <item>
-            <widget class="QTableView" name="listItems">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>2</verstretch>
-              </sizepolicy>
-             </property>
+            <widget class="QTableWidget" name="fragmentList">
              <property name="horizontalScrollBarPolicy">
               <enum>Qt::ScrollBarAlwaysOff</enum>
              </property>
-             <property name="sortingEnabled">
+             <property name="sizeAdjustPolicy">
+              <enum>QAbstractScrollArea::AdjustIgnored</enum>
+             </property>
+             <property name="autoScroll">
               <bool>true</bool>
              </property>
+             <attribute name="horizontalHeaderCascadingSectionResizes">
+              <bool>false</bool>
+             </attribute>
+             <attribute name="horizontalHeaderDefaultSectionSize">
+              <number>50</number>
+             </attribute>
+             <attribute name="horizontalHeaderStretchLastSection">
+              <bool>true</bool>
+             </attribute>
+             <column>
+              <property name="text">
+               <string>#</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>x</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>y</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string> </string>
+              </property>
+             </column>
             </widget>
            </item>
            <item>

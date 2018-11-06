@@ -65,12 +65,26 @@ class Image(object):
 
 
 class ImageRegion(object):
-    def __init__(self, imageHandle, imageRegion):
-        self.image = imageHandle
+    def __init__(self, imageRegion):
         self.label = imageRegion
+        self.bbox = imageRegion.bbox
+        self.x = self.bbox[1]
+        self.y = self.bbox[0]
+        self.w = self.bbox[3]
+        self.h = self.bbox[2]
 
-    def move(self, x1, y1, x2=None, y2=None):
+    @property
+    def midpoint(self):
+        x = self.x + (self.w / 2)
+        y = self.y + (self.h / 2)
+        return (x, y)
+
+    def move(self, x, y):
         pass
+
+    def resize(self, w, h):
+        self.w = w
+        self.h = h
 
 
 def edgeDetection(image, sigma=1., min_area=0, margin=0,
@@ -78,7 +92,8 @@ region_class=ImageRegion):
 
     stats = {
         'minAreaDiscarded': 0,
-        'marginDiscarded': 0
+        'marginDiscarded': 0,
+        'edgeDetectInitial': 0
     }
 
     if type(sigma) is int or type(sigma) is str:
@@ -91,6 +106,7 @@ region_class=ImageRegion):
     edge_detect = feature.canny(image, sigma=sigma)
     label_image = label(edge_detect)
     label_regions = regionprops(label_image, coordinates='rc')
+    stats['edgeDetectFound'] = len(label_regions)
 
     region_list = []
     for region in label_regions:
@@ -106,7 +122,7 @@ region_class=ImageRegion):
             stats['marginDiscarded'] += 1
             continue
 
-        region_obj = region_class(image, region)
+        region_obj = region_class(region)
         region_list.append(region_obj)
 
     return region_list, stats
@@ -162,5 +178,5 @@ targets=(0,0), tolerances=(0,0)):
 
     return cooccuring_regions, stats
 
-def removeOverlap(image, region_list):
+def removeOverlapped(image, region_list):
     pass

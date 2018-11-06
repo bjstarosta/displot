@@ -264,6 +264,9 @@ class ImageTab(QtWidgets.QWidget):
         self._imageScanBtn = self.findChild(QtWidgets.QPushButton, "button_Scan")
         self._imageScanBtn.clicked.connect(self.scanImage)
 
+        self._regionPen = QtGui.QPen(QtGui.QColor.fromRgb(255,0,0))
+        self._regionSelPen = QtGui.QPen(QtGui.QColor.fromRgb(255,255,255))
+
     def open(self, imageHandle, tabName):
         """Sets up the UI for the image referenced in imageHandle."""
         if self.opened == True:
@@ -317,23 +320,36 @@ class ImageTab(QtWidgets.QWidget):
         Will apply movable region objects to the main graphics view on completion.
         """
         self._imageScanBtn.setEnabled(False)
+
+        sigma = self.findChild(QtWidgets.QDoubleSpinBox, "value_GaussianSigma")
+        min_area = self.findChild(QtWidgets.QSpinBox, "value_DiscardLabels")
+        margin = self.findChild(QtWidgets.QSpinBox, "value_DiscardMargins")
+        patch_size = self.findChild(QtWidgets.QSpinBox, "value_PatchSize")
+        d_target = self.findChild(
+            QtWidgets.QDoubleSpinBox,
+            "value_DissimilarityTarget"
+        )
+        c_target = self.findChild(
+            QtWidgets.QDoubleSpinBox,
+            "value_CorrelationTarget"
+        )
+        d_tolerance = self.findChild(
+            QtWidgets.QDoubleSpinBox,
+            "value_DissimilarityTolerance"
+        )
+        c_tolerance = self.findChild(
+            QtWidgets.QDoubleSpinBox,
+            "value_CorrelationTolerance"
+        )
+
         self._window.setStatusBarMsg(
             'Scanning for dislocations... (edge detection)')
 
         edgeData = imageutils.edgeDetection(
             image=self.imageHandle.data,
-            sigma=self.findChild(
-                QtWidgets.QDoubleSpinBox,
-                "value_GaussianSigma"
-            ).cleanText(),
-            min_area=self.findChild(
-                QtWidgets.QSpinBox,
-                "value_DiscardLabels"
-            ).cleanText(),
-            margin=self.findChild(
-                QtWidgets.QSpinBox,
-                "value_DiscardMargins"
-            ).cleanText(),
+            sigma=sigma.cleanText(),
+            min_area=min_area.cleanText(),
+            margin=margin.cleanText(),
             region_class=ImageTabRegion
         )
 
@@ -355,35 +371,58 @@ class ImageTab(QtWidgets.QWidget):
             image=self.imageHandle.data,
             region_list=edgeData[0],
             angles=angles,
-            patch_size=self.findChild(
-                QtWidgets.QSpinBox,
-                "value_PatchSize"
-            ).cleanText(),
-            targets=(
-                self.findChild(
-                    QtWidgets.QDoubleSpinBox,
-                    "value_DissimilarityTarget"
-                ).cleanText(),
-                self.findChild(
-                    QtWidgets.QDoubleSpinBox,
-                    "value_CorrelationTarget"
-                ).cleanText()
-            ),
-            tolerances=(
-                self.findChild(
-                    QtWidgets.QDoubleSpinBox,
-                    "value_DissimilarityTolerance"
-                ).cleanText(),
-                self.findChild(
-                    QtWidgets.QDoubleSpinBox,
-                    "value_CorrelationTolerance"
-                ).cleanText()
-            )
+            patch_size=patch_size.cleanText(),
+            targets=(d_target.cleanText(), c_target.cleanText()),
+            tolerances=(d_tolerance.cleanText(), c_tolerance.cleanText())
         )
 
+        stats = {**edgeData[1], **glcmData[1]}
+
+        console = ''
+        console += ("Edge detection found "
+            +str(stats['edgeDetectInitial'])+" fragments\n")
+        console += (str(stats['minAreaDiscarded'])
+            +" fragments discarded due to area being less than "+str(min_area.text())+"\n")
+        console += (str(stats['marginDiscarded'])
+            +" fragments discarded due to falling within "+str(margin.text())+" edge margin\n")
+        console += (str(len(edgeData[0]))
+            +" out of "+str(stats['edgeDetectInitial'])+" fragments labelled\n\n")
+        console += (str(stats['borderOverlapDiscarded'])
+            +" fragments discarded due to patch size out of bounds with image\n")
+        console += (str(stats['GLCMPropsDiscarded'])
+            +" fragments discarded due to not falling within set GLCM bounds\n")
+        console += (str(len(glcmData[0]))+" fragment candidates found.\n")
+        print(console)
+
+        self.imageFragments = glcmData[0]
+
+        patch_size_int = int(patch_size.cleanText())
+        for frag in self.imageFragments:
+            frag.resize(patch_size_int, patch_size_int)
+            # TODO: overlap detection goes here
+
         self._window.setStatusBarMsg(
-            'Done. {} dislocation candidates found.'.format(len(glcmData[0])))
+            'Done. {} dislocation candidates found.'.format(len(self.imageFragments)))
+
+        for frag in self.imageFragments:
+            frag.initUi(
+                imgScene=self._imageScene,
+                minimapScene=self._minimapScene,
+                minimapView=self._minimapView,
+                defPen=self._regionPen,
+                selPen=self._regionSelPen
+            )
+            frag.show()
+
         self._imageScanBtn.setEnabled(True)
+
+    def showAllFragments(self):
+        for frag in self.imageFragments:
+            frag.show()
+
+    def hideAllFragments(self):
+        for frag in self.imageFragments:
+            frag.hide()
 
     def setTabLabel(self, label):
         """Sets the tab label to the specified text.
@@ -422,14 +461,70 @@ class ImageTab(QtWidgets.QWidget):
 
 
 class ImageTabRegion(imageutils.ImageRegion):
-    def show(self, imageTab):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.isDrawn = False
+        self.isHighlighted = False
+        self.hasUi = False
+
+        self._imageScene = None
+        self._imageSceneHandle = None
+        self._minimapScene = None
+        self._minimapSceneHandle = None
+        self._minimapView = None
+        self._regionPen = None
+        self._regionSelPen = None
+
+    def initUi(self,
+    imageTab=None, imgScene=None, minimapScene=None, minimapView=None,
+    defPen=None, selPen=None):
+        self._imageScene = imgScene
+        self._minimapScene = minimapScene
+        self._minimapView = minimapView
+        self._regionPen = defPen
+        self._regionSelPen = selPen
+        self.hasUi = True
+
+    def show(self):
+        if self.isDrawn == False:
+            self._draw()
+        self._imageSceneHandle.show()
+        self._minimapSceneHandle.show()
+
+    def hide(self):
+        self._imageSceneHandle.hide()
+        self._minimapSceneHandle.hide()
+
+    def highlight(self):
+        if self.isHighlighted == True:
+            self._imageSceneHandle.setPen(self._regionPen)
+            self._minimapSceneHandle.setPen(self._regionPen)
+            self.isHighlighted = False
+        else:
+            self._imageSceneHandle.setPen(self._regionSelPen)
+            self._minimapSceneHandle.setPen(self._regionSelPen)
+            self.isHighlighted = True
+
+    def centerOn(self):
         pass
 
-    def hide(self, imageTab):
-        pass
+    def _draw(self):
+        self._imageSceneHandle = self._imageScene.addRect(
+            self.x, self.y, self.w, self.h, self._regionPen);
 
-    def highlight(self, imageTab):
-        pass
+        midpoint = self.midpoint
+        offset = 1
+        scale = self._minimapView.getMinimapRatio()
+        self._mmCoords = (
+            (midpoint[0] - offset) * scale,
+            (midpoint[1] - offset) * scale,
+            (offset * 2),
+            (offset * 2)
+        )
+        self._minimapSceneHandle = self._minimapScene.addEllipse(
+            self._mmCoords[0], self._mmCoords[1],
+            self._mmCoords[2], self._mmCoords[3],
+            self._regionPen);
 
-    def centerOn(self, imageTab):
-        pass
+        self.isDrawn = True
