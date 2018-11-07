@@ -144,6 +144,9 @@ class MinimapView(DisplotGraphicsView):
             self._mmBox.setRect(box_x, box_y, box_w, box_h)
 
     def _drawViewboxEv(self, e):
+        """Method to handle and constrain minimap mouse events before passing
+        them onto drawViewbox.
+        """
         imv = self.imageTab._imageView
         vpBox = imv.mapToScene(imv.viewport().rect()).boundingRect()
         bgPixmap = self.imageTab._imageScenePixmap.boundingRect()
@@ -175,3 +178,21 @@ class MinimapView(DisplotGraphicsView):
     def mouseMoveEvent(self, e):
         if e.buttons() & QtCore.Qt.LeftButton:
             self._drawViewboxEv(e)
+
+
+class ImageTabList(QtWidgets.QTableWidget):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def setDataList(self, list):
+        self.setRowCount(len(list))
+
+        for obj in list:
+            attr = getattr(obj, col)
+
+    def addRow(self):
+        pass
+
+    def removeRow(self):
+        pass

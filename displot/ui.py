@@ -55,11 +55,12 @@ class DisplotUi(QtWidgets.QMainWindow):
         sys.exit(self.app.exec_())
 
     def exit(self):
-        """Exits the program."""
+        """Exits the program gracefully."""
         gc.collect(1)
         self.app.quit()
 
     def closeEvent(self, ev):
+        """Event handler reimplementation for the window close event."""
         self.exit()
 
     def setStatusBarMsg(self, message=""):
@@ -67,10 +68,11 @@ class DisplotUi(QtWidgets.QMainWindow):
         self.statusBar().showMessage(message)
 
     def refreshMenus(self):
-        if self.tabWidget.currentIndex() == -1:
-            enable = False
-        else:
+        """Method to make sure menu item actions will correspond to the correct tab."""
+        if isinstance(self.tabWidget.currentWidget(), ImageTab):
             enable = True
+        else:
+            enable = False
 
         imageMenus = [
             self.layout.actionSaveImageAs,
@@ -414,6 +416,9 @@ class ImageTab(QtWidgets.QWidget):
             )
             frag.show()
 
+        fragList = self.findChild(QtWidgets.QTableWidget, "fragmentList")
+        fragList.setDataList(self.imageFragments)
+
         self._imageScanBtn.setEnabled(True)
 
     def showAllFragments(self):
@@ -517,8 +522,8 @@ class ImageTabRegion(imageutils.ImageRegion):
         offset = 1
         scale = self._minimapView.getMinimapRatio()
         self._mmCoords = (
-            (midpoint[0] - offset) * scale,
-            (midpoint[1] - offset) * scale,
+            (midpoint[0] * scale) - offset,
+            (midpoint[1] * scale) - offset,
             (offset * 2),
             (offset * 2)
         )
