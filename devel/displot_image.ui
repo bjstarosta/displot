@@ -651,11 +651,14 @@
              <property name="autoScroll">
               <bool>true</bool>
              </property>
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectRows</enum>
+             </property>
              <attribute name="horizontalHeaderCascadingSectionResizes">
-              <bool>false</bool>
+              <bool>true</bool>
              </attribute>
              <attribute name="horizontalHeaderDefaultSectionSize">
-              <number>60</number>
+              <number>20</number>
              </attribute>
              <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
               <bool>true</bool>
@@ -669,26 +672,9 @@
              <attribute name="verticalHeaderDefaultSectionSize">
               <number>20</number>
              </attribute>
-             <column>
-              <property name="text">
-               <string>pos:X</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>pos:Y</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string> </string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string> </string>
-              </property>
-             </column>
+             <attribute name="verticalHeaderMinimumSectionSize">
+              <number>20</number>
+             </attribute>
             </widget>
            </item>
            <item>

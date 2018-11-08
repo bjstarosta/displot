@@ -185,17 +185,32 @@ class ImageTabList(QtWidgets.QTableWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.headers = ['#', 'pos:X', 'pos:Y', ' ']
         self.fragmentList = []
+
+        self.headerItems = []
         self.tableItems = []
+        self.checkBoxes = []
+
+        self.cellClicked.connect(self._cellClickedEv)
 
     def setDataList(self, list):
-        self.clearContents()
+        self.setEnabled(False)
+
+        if len(self.headerItems) > 0:
+            self.clearContents()
+        else:
+            self.generateHeaders()
+
         self.setRowCount(len(list))
         self.tableItems = []
+        self.checkBoxes = []
 
         row = 0
         for obj in list:
             items = []
+            items.append(QtWidgets.QTableWidgetItem(str(row+1)))
+            items[0].setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
             items.append(QtWidgets.QTableWidgetItem(str(obj.x)))
             items.append(QtWidgets.QTableWidgetItem(str(obj.y)))
 
@@ -204,13 +219,43 @@ class ImageTabList(QtWidgets.QTableWidget):
                 self.setItem(row, col, item)
                 col += 1
 
+            cb = QtWidgets.QCheckBox()
+            cb.setStyleSheet("margin-left:50%; margin-right:50%;")
+            self.setCellWidget(row, col, cb)
+            self.checkBoxes.append(cb)
+
             self.tableItems.append(items)
             row += 1
 
         self.fragmentList = list
+        self.resizeColumnsToContents()
+        self.setEnabled(True)
 
     def addFragment(self, obj):
         pass
 
     def removeFragment(self):
         pass
+
+    def generateHeaders(self, headers=None):
+        if type(headers) is list:
+            self.headers = headers
+
+        self.clear()
+        self.setColumnCount(len(self.headers))
+        self.setRowCount(0)
+
+        self.headerItems = []
+        i = 0
+        for h in self.headers:
+            item = QtWidgets.QTableWidgetItem(h)
+            self.setHorizontalHeaderItem(i, item)
+            self.headerItems.append(item)
+            i += 1
+
+    def _cellClickedEv(self, row, column):
+        if column == 3:
+            if self.checkBoxes[row].isChecked() == True:
+                self.checkBoxes[row].setChecked(False)
+            else:
+                self.checkBoxes[row].setChecked(True)
