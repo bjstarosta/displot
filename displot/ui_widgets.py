@@ -185,14 +185,32 @@ class ImageTabList(QtWidgets.QTableWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.fragmentList = []
+        self.tableItems = []
+
     def setDataList(self, list):
+        self.clearContents()
         self.setRowCount(len(list))
+        self.tableItems = []
 
+        row = 0
         for obj in list:
-            attr = getattr(obj, col)
+            items = []
+            items.append(QtWidgets.QTableWidgetItem(str(obj.x)))
+            items.append(QtWidgets.QTableWidgetItem(str(obj.y)))
 
-    def addRow(self):
+            col = 0
+            for item in items:
+                self.setItem(row, col, item)
+                col += 1
+
+            self.tableItems.append(items)
+            row += 1
+
+        self.fragmentList = list
+
+    def addFragment(self, obj):
         pass
 
-    def removeRow(self):
+    def removeFragment(self):
         pass

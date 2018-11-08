@@ -519,7 +519,7 @@ class ImageTabRegion(imageutils.ImageRegion):
             self.x, self.y, self.w, self.h, self._regionPen);
 
         midpoint = self.midpoint
-        offset = 1
+        offset = 0.5
         scale = self._minimapView.getMinimapRatio()
         self._mmCoords = (
             (midpoint[0] * scale) - offset,
