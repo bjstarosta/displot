@@ -227,7 +227,7 @@
                      </sizepolicy>
                     </property>
                     <property name="focusPolicy">
-                     <enum>Qt::TabFocus</enum>
+                     <enum>Qt::ClickFocus</enum>
                     </property>
                     <property name="frame">
                      <bool>true</bool>
@@ -283,7 +283,7 @@
                      </sizepolicy>
                     </property>
                     <property name="focusPolicy">
-                     <enum>Qt::TabFocus</enum>
+                     <enum>Qt::ClickFocus</enum>
                     </property>
                     <property name="suffix">
                      <string>px</string>
@@ -324,7 +324,7 @@
                      </sizepolicy>
                     </property>
                     <property name="focusPolicy">
-                     <enum>Qt::TabFocus</enum>
+                     <enum>Qt::ClickFocus</enum>
                     </property>
                     <property name="suffix">
                      <string>px</string>
@@ -451,7 +451,7 @@
                      </sizepolicy>
                     </property>
                     <property name="focusPolicy">
-                     <enum>Qt::TabFocus</enum>
+                     <enum>Qt::ClickFocus</enum>
                     </property>
                     <property name="toolTip">
                      <string extracomment="Increase this value for more fragment candidates."/>
@@ -476,7 +476,7 @@
                      </sizepolicy>
                     </property>
                     <property name="focusPolicy">
-                     <enum>Qt::TabFocus</enum>
+                     <enum>Qt::ClickFocus</enum>
                     </property>
                     <property name="wrapping">
                      <bool>false</bool>
@@ -510,7 +510,7 @@
                      </sizepolicy>
                     </property>
                     <property name="focusPolicy">
-                     <enum>Qt::TabFocus</enum>
+                     <enum>Qt::ClickFocus</enum>
                     </property>
                     <property name="maximum">
                      <double>100.000000000000000</double>
@@ -529,7 +529,7 @@
                      </sizepolicy>
                     </property>
                     <property name="focusPolicy">
-                     <enum>Qt::TabFocus</enum>
+                     <enum>Qt::ClickFocus</enum>
                     </property>
                     <property name="minimum">
                      <double>-100.000000000000000</double>
@@ -560,6 +560,9 @@
                   </item>
                   <item row="0" column="5">
                    <widget class="QSpinBox" name="value_PatchSize">
+                    <property name="focusPolicy">
+                     <enum>Qt::ClickFocus</enum>
+                    </property>
                     <property name="suffix">
                      <string>px</string>
                     </property>
@@ -590,7 +593,7 @@
                   <item row="1" column="5">
                    <widget class="QSpinBox" name="value_AnglesCompared">
                     <property name="focusPolicy">
-                     <enum>Qt::TabFocus</enum>
+                     <enum>Qt::ClickFocus</enum>
                     </property>
                     <property name="toolTip">
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The script will attempt to compare each candidate area from a number of angles.&lt;/p&gt;&lt;p&gt;This number dictates how many angles will be generated, i.e. how many slices Pi should be split up into.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
