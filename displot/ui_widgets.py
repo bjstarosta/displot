@@ -1,33 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class DisplotGraphicsView(QtWidgets.QGraphicsView):
-    """A common parent class for some of the graphics widgets on the image
-    tabs that implements some common functionality.
-
-    There's no reason to instantiate this as a Qt widget, its only use is for
-    extending other classes.
-
-    Attributes:
-        imageTab: the QWidget object representing the top level parent object
-            of this widget.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    @property
-    def imageTab(self):
-        return self._imageTab
-
-    @imageTab.setter
-    def imageTab(self, obj):
-        if not isinstance(obj, QtWidgets.QWidget):
-            raise TypeError('Value needs to be an instance of QtWidgets.QWidgets')
-        self._imageTab = obj
-
-
-class WorkImageView(DisplotGraphicsView):
+class WorkImageView(QtWidgets.QGraphicsView):
     """A QGraphicsView object responsible for the main image view of the program.
 
     Note that it is tightly coupled to its parent QWidget object for reasons
@@ -42,11 +16,30 @@ class WorkImageView(DisplotGraphicsView):
         super().__init__(*args, **kwargs)
 
         self.zoomLevel = 1
+        self._labelX = None
+        self._labelY = None
+
+        self.setMouseTracking(True)
+
+    @property
+    def imageTab(self):
+        return self._imageTab
+
+    @imageTab.setter
+    def imageTab(self, obj):
+        if not isinstance(obj, QtWidgets.QWidget):
+            raise TypeError('Value needs to be an instance of QtWidgets.QWidget')
+        self._imageTab = obj
 
     def initEvents(self):
         """Initialises some UI events. Run this after the image has been loaded."""
         self._zoomDial = self.imageTab.findChild(QtWidgets.QSpinBox, "zoomDial")
         self._zoomDial.valueChanged.connect(self._zoomEv)
+        self._labelX = self.imageTab.findChild(QtWidgets.QLabel, "imageCurX")
+        self._labelY = self.imageTab.findChild(QtWidgets.QLabel, "imageCurY")
+
+    def getVisibleRect(self):
+        return self.mapToScene(self.viewport().geometry()).boundingRect()
 
     def zoom(self, scale):
         """Zooms the scene according to the passed scale multiplier (float)."""
@@ -58,6 +51,11 @@ class WorkImageView(DisplotGraphicsView):
         self.zoom(int(self._zoomDial.cleanText()) / 100)
         self.imageTab._minimapView.drawViewbox()
 
+    def mouseMoveEvent(self, e):
+        rect = self.getVisibleRect()
+        self._labelX.setText('x:'+str(rect.x()+e.x()))
+        self._labelY.setText('y:'+str(rect.y()+e.y()))
+
     def resizeEvent(self, e):
         if self.imageTab.opened == True:
             self.imageTab._minimapView.drawViewbox()
@@ -67,7 +65,7 @@ class WorkImageView(DisplotGraphicsView):
         self.imageTab._minimapView.drawViewbox()
 
 
-class MinimapView(DisplotGraphicsView):
+class MinimapView(QtWidgets.QGraphicsView):
     """A QGraphicsView object responsible for displaying the loaded image minimap.
 
     Note that it is tightly coupled to its parent QWidget object for reasons
@@ -80,6 +78,16 @@ class MinimapView(DisplotGraphicsView):
 
         self._mmPen = QtGui.QPen(QtGui.QColor.fromRgb(0,255,0))
         self._mmBox = False
+
+    @property
+    def imageTab(self):
+        return self._imageTab
+
+    @imageTab.setter
+    def imageTab(self, obj):
+        if not isinstance(obj, QtWidgets.QWidget):
+            raise TypeError('Value needs to be an instance of QtWidgets.QWidget')
+        self._imageTab = obj
 
     def getMinimapRatio(self):
         """Returns a single float representing the ideal scaling ratio for the
@@ -186,13 +194,23 @@ class ImageTabList(QtWidgets.QTableWidget):
         super().__init__(*args, **kwargs)
 
         self.headers = ['#', 'pos:X', 'pos:Y', ' ']
-        self.fragmentList = []
-
         self.headerItems = []
         self.tableItems = []
         self.checkBoxes = []
+        self.lastColumn = 0
 
         self.cellClicked.connect(self._cellClickedEv)
+        self.itemSelectionChanged.connect(self._itemSelectionChangedEv)
+
+    @property
+    def imageTab(self):
+        return self._imageTab
+
+    @imageTab.setter
+    def imageTab(self, obj):
+        if not isinstance(obj, QtWidgets.QWidget):
+            raise TypeError('Value needs to be an instance of QtWidgets.QWidget')
+        self._imageTab = obj
 
     def setDataList(self, list):
         self.setEnabled(False)
@@ -206,11 +224,17 @@ class ImageTabList(QtWidgets.QTableWidget):
         self.tableItems = []
         self.checkBoxes = []
 
+        fNoEdit = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled
+        fCenter = QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter
+
         row = 0
         for obj in list:
             items = []
             items.append(QtWidgets.QTableWidgetItem(str(row+1)))
-            items[0].setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+            items[0].fragmentRef = obj
+            items[0].setFlags(fNoEdit)
+            items[0].setTextAlignment(fCenter)
+
             items.append(QtWidgets.QTableWidgetItem(str(obj.x)))
             items.append(QtWidgets.QTableWidgetItem(str(obj.y)))
 
@@ -219,7 +243,7 @@ class ImageTabList(QtWidgets.QTableWidget):
                 self.setItem(row, col, item)
                 col += 1
 
-            cb = QtWidgets.QCheckBox()
+            cb = ImageTabListCheckbox(self, items[0])
             cb.setStyleSheet("margin-left:50%; margin-right:50%;")
             self.setCellWidget(row, col, cb)
             self.checkBoxes.append(cb)
@@ -227,15 +251,22 @@ class ImageTabList(QtWidgets.QTableWidget):
             self.tableItems.append(items)
             row += 1
 
-        self.fragmentList = list
         self.resizeColumnsToContents()
         self.setEnabled(True)
 
-    def addFragment(self, obj):
+    def addRow(self, obj):
         pass
 
-    def removeFragment(self):
+    def removeRow(self, row):
         pass
+
+    def getCheckedFragments(self):
+        frags = []
+        for cb in self.checkBoxes:
+            if cb.isChecked() == True:
+                frags.append(self.item(cb.getRow(), 0))
+
+        return frags
 
     def generateHeaders(self, headers=None):
         if type(headers) is list:
@@ -253,9 +284,29 @@ class ImageTabList(QtWidgets.QTableWidget):
             self.headerItems.append(item)
             i += 1
 
+        self.lastColumn = len(self.headerItems) - 1
+
     def _cellClickedEv(self, row, column):
-        if column == 3:
+        if column == self.lastColumn:
             if self.checkBoxes[row].isChecked() == True:
                 self.checkBoxes[row].setChecked(False)
             else:
                 self.checkBoxes[row].setChecked(True)
+
+    def _itemSelectionChangedEv(self):
+        self._imageTab.unhighlightAllFragments()
+        sel = self.selectedItems()
+        sel[0].fragmentRef.centerOn()
+        sel[0].fragmentRef.highlight()
+
+
+class ImageTabListCheckbox(QtWidgets.QCheckBox):
+
+    def __init__(self, tableWidget, rowFirstWidget, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.tableWidget = tableWidget
+        self.rowFirstWidget = rowFirstWidget
+
+    def getRow(self):
+        return self.tableWidget.row(self.rowFirstWidget)

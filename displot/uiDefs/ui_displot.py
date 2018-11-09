@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file './displot.ui'
 #
-# Created by: PyQt5 UI code generator 5.10.1
+# Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -35,6 +35,8 @@ class Ui_MainWindow(object):
         self.gridLayout_2 = QtWidgets.QGridLayout(self.whatsNew)
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.whatsNewBrowser = QtWidgets.QTextBrowser(self.whatsNew)
+        self.whatsNewBrowser.setOpenExternalLinks(True)
+        self.whatsNewBrowser.setOpenLinks(True)
         self.whatsNewBrowser.setObjectName("whatsNewBrowser")
         self.gridLayout_2.addWidget(self.whatsNewBrowser, 0, 0, 1, 1)
         self.tabWidget.addTab(self.whatsNew, "")
@@ -93,8 +95,8 @@ class Ui_MainWindow(object):
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'Roboto\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:xx-large; font-weight:600;\">Displot (alpha version)</span></p>\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Please submit feature requests and report any bugs to: <a href=\"https://github.com/bjstarosta/displot/issues\"><span style=\" text-decoration: underline; color:#0000ff;\">https://github.com/bjstarosta/displot/issues</span></a></p></body></html>"))
+"<p style=\" margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:xx-large; font-weight:600;\">Displot</span><span style=\" font-size:large; font-weight:296;\"> - GaN Dislocation Counter</span></p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">This is an alpha version. Please submit feature requests and report any bugs to: <a href=\"https://github.com/bjstarosta/displot/issues\"><span style=\" text-decoration: underline; color:#0000ff;\">https://github.com/bjstarosta/displot/issues</span></a></p></body></html>"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.whatsNew), _translate("MainWindow", "Welcome"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuHelp.setTitle(_translate("MainWindow", "Help"))

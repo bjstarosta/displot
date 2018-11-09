@@ -262,6 +262,10 @@ class ImageTab(QtWidgets.QWidget):
         self._minimapView.setScene(self._minimapScene)
         self._minimapView.imageTab = self
 
+        # Init list widget
+        self._fragmentList = self.findChild(QtWidgets.QTableWidget, "fragmentList")
+        self._fragmentList.imageTab = self
+
         # Init button events
         self._imageScanBtn = self.findChild(QtWidgets.QPushButton, "button_Scan")
         self._imageScanBtn.clicked.connect(self.scanImage)
@@ -409,6 +413,7 @@ class ImageTab(QtWidgets.QWidget):
         for frag in self.imageFragments:
             frag.initUi(
                 imgScene=self._imageScene,
+                imgView=self._imageView,
                 minimapScene=self._minimapScene,
                 minimapView=self._minimapView,
                 defPen=self._regionPen,
@@ -416,10 +421,12 @@ class ImageTab(QtWidgets.QWidget):
             )
             frag.show()
 
-        fragList = self.findChild(QtWidgets.QTableWidget, "fragmentList")
-        fragList.setDataList(self.imageFragments)
-
+        self._fragmentList.setDataList(self.imageFragments)
         self._imageScanBtn.setEnabled(True)
+
+    def unhighlightAllFragments(self):
+        for frag in self.imageFragments:
+            frag.highlight(False)
 
     def showAllFragments(self):
         for frag in self.imageFragments:
@@ -475,6 +482,7 @@ class ImageTabRegion(imageutils.ImageRegion):
 
         self._imageScene = None
         self._imageSceneHandle = None
+        self._imageView = None
         self._minimapScene = None
         self._minimapSceneHandle = None
         self._minimapView = None
@@ -482,9 +490,11 @@ class ImageTabRegion(imageutils.ImageRegion):
         self._regionSelPen = None
 
     def initUi(self,
-    imageTab=None, imgScene=None, minimapScene=None, minimapView=None,
+    imageTab=None, imgScene=None, imgView=None,
+    minimapScene=None, minimapView=None,
     defPen=None, selPen=None):
         self._imageScene = imgScene
+        self._imageView = imgView
         self._minimapScene = minimapScene
         self._minimapView = minimapView
         self._regionPen = defPen
@@ -501,18 +511,18 @@ class ImageTabRegion(imageutils.ImageRegion):
         self._imageSceneHandle.hide()
         self._minimapSceneHandle.hide()
 
-    def highlight(self):
-        if self.isHighlighted == True:
-            self._imageSceneHandle.setPen(self._regionPen)
-            self._minimapSceneHandle.setPen(self._regionPen)
-            self.isHighlighted = False
-        else:
+    def highlight(self, toggle=True):
+        if toggle == True:
             self._imageSceneHandle.setPen(self._regionSelPen)
             self._minimapSceneHandle.setPen(self._regionSelPen)
             self.isHighlighted = True
+        else:
+            self._imageSceneHandle.setPen(self._regionPen)
+            self._minimapSceneHandle.setPen(self._regionPen)
+            self.isHighlighted = False
 
     def centerOn(self):
-        pass
+        self._imageView.centerOn(self._imageSceneHandle)
 
     def _draw(self):
         self._imageSceneHandle = self._imageScene.addRect(
