@@ -42,8 +42,12 @@ class DisplotUi(QtWidgets.QMainWindow):
         self.tabWidget.currentChanged.connect(self.refreshMenus)
 
         self.layout.actionOpenImage.triggered.connect(self.imageTabOpen)
-        self.layout.actionCloseImage.triggered.connect(self.imageTabCloseDialog)
+        self.layout.actionSaveImageAs.triggered.connect(self.imageFileDlgSave)
+        self.layout.actionCloseImage.triggered.connect(
+            lambda: self.imageTabCloseDialog())
         self.layout.actionExit.triggered.connect(self.exit)
+        self.layout.actionSaveImageAs.setEnabled(False)
+        self.layout.actionCloseImage.setEnabled(False)
 
         self.layout.actionAbout.triggered.connect(self.openAbout)
 
@@ -127,6 +131,22 @@ class DisplotUi(QtWidgets.QMainWindow):
         else:
             return False
 
+    def imageFileDlgSave(self):
+        """Opens a file browser dialog used for selecting an image file to be
+        opened. Returns either a file path string or False if the dialog was
+        cancelled.
+        """
+        dlg = QtWidgets.QFileDialog(self, 'Save image as')
+        dlg.setOption(QtWidgets.QFileDialog.DontUseNativeDialog)
+        dlg.setFileMode(QtWidgets.QFileDialog.ExistingFile)
+        #dlg.setFilter(QtCore.QDir.AllEntries | QtCore.QDir.NoDotAndDotDot)
+        dlg.setNameFilters(['Portable network graphics image (*.png)', 'Comma separated value file (*.csv)'])
+
+        if dlg.exec_() == QtWidgets.QDialog.Accepted:
+            return dlg.selectedFiles()[0]
+        else:
+            return False
+
     def imageTabCreate(self, imageHandle, tabName="No image"):
         """Creates and focuses a new tab in the tab widget using the specified
         image file.
@@ -148,7 +168,7 @@ class DisplotUi(QtWidgets.QMainWindow):
 
         if it == None:
             return
-        
+
         dlg = GenericDialog()
         dlg.setText('Are you sure you want to close this tab?')
         dlg.setAccept(lambda: self.imageTabClose(index))
