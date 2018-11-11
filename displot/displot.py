@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
 displot_info = {
     'appTitle': 'displot',
-    'appVersion': 'pre-alpha',
+    'appVersion': '0.1',
     'author': 'Bohdan Starosta',
     'authorEmail': 'bjstarosta@gmail.com',
     'projectPage': 'https://github.com/bjstarosta/displot/'

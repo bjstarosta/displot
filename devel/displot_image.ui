@@ -660,6 +660,9 @@
              <property name="selectionBehavior">
               <enum>QAbstractItemView::SelectRows</enum>
              </property>
+             <property name="sortingEnabled">
+              <bool>true</bool>
+             </property>
              <attribute name="horizontalHeaderCascadingSectionResizes">
               <bool>true</bool>
              </attribute>
@@ -718,7 +721,7 @@
                </spacer>
               </item>
               <item>
-               <widget class="QPushButton" name="btnAddDisl">
+               <widget class="QPushButton" name="button_AddFrag">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -737,7 +740,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="btnRemDisl">
+               <widget class="QPushButton" name="button_RemFrag">
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
@@ -750,7 +753,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="btnMovDisl">
+               <widget class="QPushButton" name="button_MovFrag">
                 <property name="maximumSize">
                  <size>
                   <width>50</width>
@@ -917,7 +920,7 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>75</width>
+          <width>60</width>
           <height>0</height>
          </size>
         </property>
@@ -937,6 +940,9 @@
       </item>
       <item>
        <widget class="QLabel" name="imageCurY">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -945,7 +951,7 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>75</width>
+          <width>60</width>
           <height>0</height>
          </size>
         </property>

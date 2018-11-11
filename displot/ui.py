@@ -6,6 +6,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from uiDefs import *
 
 import imageutils
+from ui_widgets import WorkImageView
 
 
 class DisplotUi(QtWidgets.QMainWindow):
@@ -36,12 +37,12 @@ class DisplotUi(QtWidgets.QMainWindow):
         self.updateWindowTitle()
 
         # Setup events
-        self.tabWidget.tabCloseRequested.connect(self.imageTabClose)
+        self.tabWidget.tabCloseRequested.connect(self.imageTabCloseDialog)
         self.tabWidget.currentChanged.connect(self.updateWindowTitle)
         self.tabWidget.currentChanged.connect(self.refreshMenus)
 
         self.layout.actionOpenImage.triggered.connect(self.imageTabOpen)
-        self.layout.actionCloseImage.triggered.connect(self.imageTabClose)
+        self.layout.actionCloseImage.triggered.connect(self.imageTabCloseDialog)
         self.layout.actionExit.triggered.connect(self.exit)
 
         self.layout.actionAbout.triggered.connect(self.openAbout)
@@ -63,9 +64,9 @@ class DisplotUi(QtWidgets.QMainWindow):
         """Event handler reimplementation for the window close event."""
         self.exit()
 
-    def setStatusBarMsg(self, message=""):
+    def setStatusBarMsg(self, message="", timeout=0):
         """Shows a short message in the status bar at the bottom of the window."""
-        self.statusBar().showMessage(message)
+        self.statusBar().showMessage(message, timeout)
 
     def refreshMenus(self):
         """Method to make sure menu item actions will correspond to the correct tab."""
@@ -86,7 +87,7 @@ class DisplotUi(QtWidgets.QMainWindow):
         title = self.appTitle + ' v.' + self.appVersion + ' - ['
         it = self.imageTabFind(self.tabWidget.currentIndex())
 
-        if it == False:
+        if it == None:
             curFile = 'No image'
         else:
             curFile = it.filePath
@@ -130,7 +131,7 @@ class DisplotUi(QtWidgets.QMainWindow):
         """Creates and focuses a new tab in the tab widget using the specified
         image file.
 
-        Attributes:
+        Args:
             imageHandle: An Image() object reference (see imageutils.py).
             tabName: A text string to be shown as the tab label.
         """
@@ -139,36 +140,53 @@ class DisplotUi(QtWidgets.QMainWindow):
         self.imageTabs.append(it)
         return it
 
-    def imageTabClose(self, index=False):
-        """Closes the tab specified by the index argument.
-
-        Attributes:
-            index: An integer specifying the index of the tab to close from
-                the left-hand side.
-        """
-        if index == False:
+    def imageTabCloseDialog(self, index=None):
+        if index == None:
             it = self.imageTabCurrent()
         else:
             it = self.imageTabFind(index)
 
-        if not isinstance(it, QtWidgets.QWidget):
+        if it == None:
             return
+        
+        dlg = GenericDialog()
+        dlg.setText('Are you sure you want to close this tab?')
+        dlg.setAccept(lambda: self.imageTabClose(index))
+        dlg.show()
+        dlg.exec_()
+
+    def imageTabClose(self, index=None):
+        """Closes the tab specified by the index argument.
+
+        Args:
+            index: An integer specifying the index of the tab to close from
+                the left-hand side.
+        """
+        if index == None:
+            it = self.imageTabCurrent()
+        else:
+            it = self.imageTabFind(index)
+
+        if it == None:
+            return
+
         it.close()
         self.imageTabs.remove(it)
 
     def imageTabFind(self, index):
         """Finds the ImageTab object corresponding with the tab at specified index.
 
-        Returns either an ImageTab object or False if no corresponding object
-        was found.
+        Returns:
+            Returns either an ImageTab object or False if no corresponding object
+            was found.
         """
         if index == -1:
-            return False
+            return None
 
         for o in self.imageTabs:
             if o.widgetIndex == index:
                 return o
-        return False
+        return None
 
     def imageTabCurrent(self):
         return self.imageTabFind(self.tabWidget.currentIndex())
@@ -239,15 +257,23 @@ class ImageTab(QtWidgets.QWidget):
         self.layout.setupUi(self)
 
         self.opened = False
-        self.imageHandle = False
-        self.imageFragments = []
+        self.image = None
 
-        self._qImage = False
-        self._qPixMap = False
-        self._imageScenePixmap = False
-        self._minimapScenePixmap = False
+        self._qImage = None
+        self._qPixMap = None
+        self._imageScenePixmap = None
+        self._minimapScenePixmap = None
         self._window = windowRef
         self._tabWidget = tabWidgetRef
+
+        self._regionPen = QtGui.QPen(QtGui.QColor.fromRgb(255,0,0))
+        self._regionSelPen = QtGui.QPen(QtGui.QColor.fromRgb(255,255,255))
+        self._regionNewPen = QtGui.QPen(QtGui.QColor.fromRgb(0,255,255))
+        self._regionMovePen = QtGui.QPen(QtGui.QColor.fromRgb(255,255,0))
+
+        self._lastPatchSize = int(
+            self.findChild(QtWidgets.QSpinBox, "value_PatchSize").cleanText())
+        self._movingFragment = None
 
         # Init main image view layout objects
         self._imageScene = QtWidgets.QGraphicsScene()
@@ -255,6 +281,8 @@ class ImageTab(QtWidgets.QWidget):
         self._imageView.setScene(self._imageScene)
         self._imageView.imageTab = self
         self._imageView.initEvents()
+        self._imageView.regionNewPen = self._regionNewPen
+        self._imageView.regionMovePen = self._regionMovePen
 
         # Init minimap layout objects
         self._minimapScene = QtWidgets.QGraphicsScene()
@@ -265,13 +293,36 @@ class ImageTab(QtWidgets.QWidget):
         # Init list widget
         self._fragmentList = self.findChild(QtWidgets.QTableWidget, "fragmentList")
         self._fragmentList.imageTab = self
+        self._fragmentList.itemSelectionChanged.connect(self._selectedFragment)
 
         # Init button events
         self._imageScanBtn = self.findChild(QtWidgets.QPushButton, "button_Scan")
         self._imageScanBtn.clicked.connect(self.scanImage)
+        self._fragAddBtn = self.findChild(QtWidgets.QPushButton, "button_AddFrag")
+        self._fragAddBtn.clicked.connect(
+            lambda: self._imageView.setMouseMode(WorkImageView.MODE_REGION_NEW))
+        self._imageView.clickedRegionNew.connect(self.addNewFragment)
+        self._fragRemBtn = self.findChild(QtWidgets.QPushButton, "button_RemFrag")
+        self._fragRemBtn.clicked.connect(self.deleteSelFragments)
+        self._fragMovBtn = self.findChild(QtWidgets.QPushButton, "button_MovFrag")
+        self._fragMovBtn.clicked.connect(self._moveSelFragment)
+        self._imageView.clickedRegionMove.connect(self.moveFragment)
 
-        self._regionPen = QtGui.QPen(QtGui.QColor.fromRgb(255,0,0))
-        self._regionSelPen = QtGui.QPen(QtGui.QColor.fromRgb(255,255,255))
+    def setTabLabel(self, label):
+        """Sets the tab label to the specified text.
+
+        Args:
+            label (str): A text string to be inserted into the tab label.
+        """
+        self._tabWidget.setTabText(self.widgetIndex, label)
+
+    @property
+    def filePath(self):
+        return self.image.filePath
+
+    @property
+    def widgetIndex(self):
+        return self._tabWidget.indexOf(self)
 
     def open(self, imageHandle, tabName):
         """Sets up the UI for the image referenced in imageHandle."""
@@ -280,7 +331,7 @@ class ImageTab(QtWidgets.QWidget):
         self._tabWidget.addTab(self, tabName)
         self._tabWidget.setCurrentIndex(self.widgetIndex)
 
-        self.imageHandle = imageHandle
+        self.image = imageHandle
         self.redrawImage()
         self._minimapView.show()
         self._imageView.show()
@@ -307,9 +358,9 @@ class ImageTab(QtWidgets.QWidget):
         """If there have been changes to the self.imageHandle object reference,
         call this function to apply them to the viewports.
         """
-        self._qImage = self._grayscale2QImage(self.imageHandle.data)
+        self._qImage = self._grayscale2QImage(self.image.data)
         self._qPixMap = QtGui.QPixmap.fromImage(self._qImage)
-        if isinstance(self._imageScenePixmap, bool):
+        if self._imageScenePixmap == None:
             self._imageScenePixmap = self._imageScene.addPixmap(self._qPixMap)
             self._minimapScenePixmap = self._minimapScene.addPixmap(self._qPixMap)
         else:
@@ -352,7 +403,7 @@ class ImageTab(QtWidgets.QWidget):
             'Scanning for dislocations... (edge detection)')
 
         edgeData = imageutils.edgeDetection(
-            image=self.imageHandle.data,
+            image=self.image.data,
             sigma=sigma.cleanText(),
             min_area=min_area.cleanText(),
             margin=margin.cleanText(),
@@ -374,7 +425,7 @@ class ImageTab(QtWidgets.QWidget):
             angles_i += 1
 
         glcmData = imageutils.testGLCM(
-            image=self.imageHandle.data,
+            image=self.image.data,
             region_list=edgeData[0],
             angles=angles,
             patch_size=patch_size.cleanText(),
@@ -400,17 +451,18 @@ class ImageTab(QtWidgets.QWidget):
         console += (str(len(glcmData[0]))+" fragment candidates found.\n")
         print(console)
 
-        self.imageFragments = glcmData[0]
+        self.image.regions = glcmData[0]
 
         patch_size_int = int(patch_size.cleanText())
-        for frag in self.imageFragments:
+        self._lastPatchSize = patch_size_int
+        for frag in self.image.regions:
             frag.resize(patch_size_int, patch_size_int)
             # TODO: overlap detection goes here
 
         self._window.setStatusBarMsg(
-            'Done. {} dislocation candidates found.'.format(len(self.imageFragments)))
+            'Done. {} dislocation candidates found.'.format(len(self.image.regions)))
 
-        for frag in self.imageFragments:
+        for frag in self.image.regions:
             frag.initUi(
                 imgScene=self._imageScene,
                 imgView=self._imageView,
@@ -421,42 +473,75 @@ class ImageTab(QtWidgets.QWidget):
             )
             frag.show()
 
-        self._fragmentList.setDataList(self.imageFragments)
+        self._fragmentList.setDataList(self.image.regions)
         self._imageScanBtn.setEnabled(True)
 
     def unhighlightAllFragments(self):
-        for frag in self.imageFragments:
+        for frag in self.image.regions:
             frag.highlight(False)
 
     def showAllFragments(self):
-        for frag in self.imageFragments:
+        for frag in self.image.regions:
             frag.show()
 
     def hideAllFragments(self):
-        for frag in self.imageFragments:
+        for frag in self.image.regions:
             frag.hide()
 
-    def setTabLabel(self, label):
-        """Sets the tab label to the specified text.
+    def addNewFragment(self, x, y):
+        frag = ImageTabRegion()
+        frag.setSize(x, y, self._lastPatchSize, self._lastPatchSize)
+        frag.initUi(
+            imgScene=self._imageScene,
+            imgView=self._imageView,
+            minimapScene=self._minimapScene,
+            minimapView=self._minimapView,
+            defPen=self._regionPen,
+            selPen=self._regionSelPen
+        )
+        frag.show()
+        self._fragmentList.addRow(frag)
+        self.image.regions.append(frag)
 
-        Attributes:
-            label: A text string to be inserted into the tab label.
-        """
-        self._tabWidget.setTabText(self.widgetIndex, label)
+    def _moveSelFragment(self):
+        sel = self._fragmentList.selectedItems()
+        if len(sel) == 0:
+            self._window.setStatusBarMsg(
+                'No fragment selected.'
+                +' Select a fragment in the list, then click the "Mov" button.', 3)
+            return
 
-    @property
-    def filePath(self):
-        return self.imageHandle.filePath
+        self._movingFragment = sel[0].fragmentRef
+        self._imageView.setMouseMode(WorkImageView.MODE_REGION_MOVE)
 
-    @property
-    def widgetIndex(self):
-        return self._tabWidget.indexOf(self)
+    def moveFragment(self, x, y, frag=None):
+        if frag == None:
+            frag = self._movingFragment
+            self._movingFragment = None
+
+        sel = self._fragmentList.selectedItems()
+        self._fragmentList.updateRow(sel[0].row(), x, y)
+        frag.move(x, y)
+        frag.updateUi()
+
+    def deleteSelFragments(self):
+        rows = self._fragmentList.getCheckedFragments()
+        for frag in rows:
+            frag.fragmentRef.removeFromScene()
+            self.image.regions.remove(frag.fragmentRef)
+            self._fragmentList.removeRow(frag.row())
+
+    def _selectedFragment(self):
+        """A UI cleanup method that resets the mouse mode on ImageView if the
+        selected fragment changes."""
+        self._movingFragment = None
+        self._imageView.setMouseMode(WorkImageView.MODE_NORMAL)
 
     def _grayscale2QImage(self, imageData):
         """Converts data from a grayscale numpy array into a QImage object for
         manipulation by Qt.
 
-        Attributes:
+        Args:
             imageData: numpy ndarray of the image.
         """
         h, w = imageData.shape
@@ -503,7 +588,7 @@ class ImageTabRegion(imageutils.ImageRegion):
 
     def show(self):
         if self.isDrawn == False:
-            self._draw()
+            self.updateUi()
         self._imageSceneHandle.show()
         self._minimapSceneHandle.show()
 
@@ -524,9 +609,16 @@ class ImageTabRegion(imageutils.ImageRegion):
     def centerOn(self):
         self._imageView.centerOn(self._imageSceneHandle)
 
-    def _draw(self):
-        self._imageSceneHandle = self._imageScene.addRect(
-            self.x, self.y, self.w, self.h, self._regionPen);
+    def removeFromScene(self):
+        self._imageScene.removeItem(self._imageSceneHandle);
+        self._minimapScene.removeItem(self._minimapSceneHandle);
+
+    def updateUi(self):
+        if self._imageSceneHandle == None:
+            self._imageSceneHandle = self._imageScene.addRect(
+                self.x, self.y, self.w, self.h, self._regionPen);
+        else:
+            self._imageSceneHandle.setRect(self.x, self.y, self.w, self.h)
 
         midpoint = self.midpoint
         offset = 1
@@ -537,9 +629,15 @@ class ImageTabRegion(imageutils.ImageRegion):
             (offset * 2),
             (offset * 2)
         )
-        self._minimapSceneHandle = self._minimapScene.addEllipse(
-            self._mmCoords[0], self._mmCoords[1],
-            self._mmCoords[2], self._mmCoords[3],
-            self._regionPen);
+
+        if self._minimapSceneHandle == None:
+            self._minimapSceneHandle = self._minimapScene.addEllipse(
+                self._mmCoords[0], self._mmCoords[1],
+                self._mmCoords[2], self._mmCoords[3],
+                self._regionPen);
+        else:
+            self._minimapSceneHandle.setRect(
+                self._mmCoords[0], self._mmCoords[1],
+                self._mmCoords[2], self._mmCoords[3])
 
         self.isDrawn = True
