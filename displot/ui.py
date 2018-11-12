@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-import os, sys, gc
+import os
+import sys
+import gc
 import numpy as np
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-from uiDefs import *
+from PyQt5 import QtGui, QtWidgets
+from uiDefs import ui_displot, ui_displot_about, ui_displot_dialog, ui_displot_image
 
 import imageutils
 from ui_widgets import WorkImageView
@@ -12,13 +14,38 @@ from ui_widgets import WorkImageView
 class DisplotUi(QtWidgets.QMainWindow):
     """Singleton object responsible for UI operations.
 
+    This object, once instantiated, holds all the program data and definitions
+    in a hierarchy of objects.
+
     Attributes:
-        app: Qt QApplication object
-        window: Qt QMainWindow object
-        appTitle: String defining the window title
+        app (:obj:`QApplication`): Qt application object
+        layout (:obj:`Ui_MainWindow`): Object holding all the layout definitions
+            for the QMainWindow generated from the .ui files in the /devel/ directory.
+        imageTabs (list): List of ImageTab objects holding the currently opened
+            images.
+        tabWidget (:obj:`QTabWidget`): Reference to the QTabWidget holding the
+            opened images.
+        appTitle (str): Application title as shown at the top of the window.
+        appVersion (str): Application version as shown at the top of the window.
+        info (dict): A dictionary holding program metadata.
+
     """
 
+    IMAGE_SAVE_FILTERS = {
+        'image/png': ['Portable network graphics image (*.png)', 'png'],
+        'text/csv': ['Comma separated value file (*.csv)', 'csv']
+    }
+
     def __init__(self, infoDict={}):
+        """Class constructor.
+
+        Connects up events and sets up the layout for the run() method.
+
+        Args:
+            infoDict (dict): Optional program metadata.
+
+        """
+
         self.app = QtWidgets.QApplication(sys.argv)
 
         super().__init__()
@@ -42,9 +69,8 @@ class DisplotUi(QtWidgets.QMainWindow):
         self.tabWidget.currentChanged.connect(self.refreshMenus)
 
         self.layout.actionOpenImage.triggered.connect(self.imageTabOpen)
-        self.layout.actionSaveImageAs.triggered.connect(self.imageFileDlgSave)
-        self.layout.actionCloseImage.triggered.connect(
-            lambda: self.imageTabCloseDialog())
+        self.layout.actionSaveImageAs.triggered.connect(self.imageTabSave)
+        self.layout.actionCloseImage.triggered.connect(self.imageTabCloseDialog)
         self.layout.actionExit.triggered.connect(self.exit)
         self.layout.actionSaveImageAs.setEnabled(False)
         self.layout.actionCloseImage.setEnabled(False)
@@ -60,20 +86,40 @@ class DisplotUi(QtWidgets.QMainWindow):
         sys.exit(self.app.exec_())
 
     def exit(self):
-        """Exits the program gracefully."""
+        """Exits the program gracefully.
+        """
+
         gc.collect(1)
         self.app.quit()
 
     def closeEvent(self, ev):
-        """Event handler reimplementation for the window close event."""
+        """Event handler reimplementation for the window close event.
+
+        Wrapper function.
+        """
+
         self.exit()
 
     def setStatusBarMsg(self, message="", timeout=0):
-        """Shows a short message in the status bar at the bottom of the window."""
+        """Shows a short message in the status bar at the bottom of the window.
+        """
+
+        """Shows a short message in the status bar at the bottom of the window.
+
+        Args:
+            message (str): The message to show in the status bar.
+            timeout (int): Amount of time in seconds after which the message
+                will disappear. By default it's set to 0, which means the
+                message will stay shown until replaced with something else.
+
+        """
+
         self.statusBar().showMessage(message, timeout)
 
     def refreshMenus(self):
-        """Method to make sure menu item actions will correspond to the correct tab."""
+        """Makes sure menu item actions will effect the correct tab.
+        """
+
         if isinstance(self.tabWidget.currentWidget(), ImageTab):
             enable = True
         else:
@@ -87,7 +133,9 @@ class DisplotUi(QtWidgets.QMainWindow):
             m.setEnabled(enable)
 
     def updateWindowTitle(self):
-        """Updates the windowbar title to reflect the currently focused image file."""
+        """Updates the windowbar title to reflect the currently focused image file.
+        """
+
         title = self.appTitle + ' v.' + self.appVersion + ' - ['
         it = self.imageTabFind(self.tabWidget.currentIndex())
 
@@ -100,10 +148,12 @@ class DisplotUi(QtWidgets.QMainWindow):
         self.setWindowTitle(title)
 
     def imageTabOpen(self):
-        """Wrapper method for a few methods in this class. Will launch a file
-        browser dialog to get a file path, then load that file path into a new
-        tab.
+        """Wrapper method for the process of opening a new tab.
+
+        Will launch a file browser dialog to get a file path, then load that
+        file path into a new tab.
         """
+
         filePath = self.imageFileDlgOpen()
         if filePath == False:
             return
@@ -113,13 +163,16 @@ class DisplotUi(QtWidgets.QMainWindow):
         self.setStatusBarMsg('Loading image file: ' + filePath)
         self.imageTabCreate(image, os.path.basename(filePath))
         self.updateWindowTitle()
-        self.setStatusBarMsg('Done.')
+        self.setStatusBarMsg('Done.', 3)
 
     def imageFileDlgOpen(self):
-        """Opens a file browser dialog used for selecting an image file to be
-        opened. Returns either a file path string or False if the dialog was
-        cancelled.
+        """Opens a file browser dialog for selecting an image file.
+
+        Returns:
+            A file path string, or False if the dialog was cancelled.
+
         """
+
         dlg = QtWidgets.QFileDialog(self, 'Open image')
         dlg.setOption(QtWidgets.QFileDialog.DontUseNativeDialog)
         dlg.setFileMode(QtWidgets.QFileDialog.ExistingFile)
@@ -131,19 +184,79 @@ class DisplotUi(QtWidgets.QMainWindow):
         else:
             return False
 
-    def imageFileDlgSave(self):
-        """Opens a file browser dialog used for selecting an image file to be
-        opened. Returns either a file path string or False if the dialog was
-        cancelled.
+    def imageTabSave(self, index=None):
+        """Wrapper method for the process of saving image data.
+
+        Args:
+            index (int): Index of the ImageTab the image data of which should be
+                saved. If None is passed, the method will attempt to find the
+                currently selected tab.
+
         """
+
+        if index == None or index == False:
+            it = self.imageTabCurrent()
+        else:
+            it = self.imageTabFind(index)
+
+        if it == None:
+            return
+
+        dlgsave = self.imageFileDlgSave()
+        if dlgsave == False:
+            return
+
+        filepath = dlgsave[0]
+        splitext = os.path.splitext(dlgsave[0])
+        mimetype = None
+        ext = None
+        for k, v in self.IMAGE_SAVE_FILTERS.items():
+            if v[0] != dlgsave[1]:
+                continue
+            mimetype = k
+            ext = v[1]
+            break
+
+        if splitext[1] == '':
+            filepath += '.'+ext
+
+        self.setStatusBarMsg('Saving image file: ' + filepath)
+
+        if mimetype == 'image/png':
+            im_dim = it.image.dimensions
+            pixmap = QtGui.QPixmap(im_dim['w'], im_dim['h'])
+            painter = QtGui.QPainter(pixmap)
+            it._imageScene.render(painter)
+            painter.end()
+            pixmap.save(filepath, 'PNG')
+
+        if mimetype == 'text/csv':
+            it.image.save(filepath, imageutils.Image.FORMAT_CSV)
+
+        self.setStatusBarMsg('Done.', 3)
+
+    def imageFileDlgSave(self):
+        """Opens a file browser dialog for saving an image file.
+
+        Returns:
+            A tuple containing a file path string and the selected mime type,
+            or False if the dialog was cancelled.
+
+        """
+
         dlg = QtWidgets.QFileDialog(self, 'Save image as')
         dlg.setOption(QtWidgets.QFileDialog.DontUseNativeDialog)
-        dlg.setFileMode(QtWidgets.QFileDialog.ExistingFile)
-        #dlg.setFilter(QtCore.QDir.AllEntries | QtCore.QDir.NoDotAndDotDot)
-        dlg.setNameFilters(['Portable network graphics image (*.png)', 'Comma separated value file (*.csv)'])
+        dlg.setAcceptMode(QtWidgets.QFileDialog.AcceptSave)
+        dlg.setFileMode(QtWidgets.QFileDialog.AnyFile)
+        #dlg.setMimeTypeFilters(["image/png", "text/csv"])
+
+        filters = []
+        for k, v in self.IMAGE_SAVE_FILTERS.items():
+            filters.append(v[0])
+        dlg.setNameFilters(filters)
 
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
-            return dlg.selectedFiles()[0]
+            return (dlg.selectedFiles()[0], dlg.selectedNameFilter())
         else:
             return False
 
@@ -153,15 +266,29 @@ class DisplotUi(QtWidgets.QMainWindow):
 
         Args:
             imageHandle: An Image() object reference (see imageutils.py).
-            tabName: A text string to be shown as the tab label.
+            tabName (str): A text string to be shown as the tab label.
+
+        Returns:
+            The newly created ImageTab object.
+
         """
+
         it = ImageTab(self, self.tabWidget)
         it.open(imageHandle, tabName)
         self.imageTabs.append(it)
         return it
 
     def imageTabCloseDialog(self, index=None):
-        if index == None:
+        """Shows a two option dialog box asking to confirm whether to close the
+        image tab or not.
+
+        Args:
+            index (int): Index of the ImageTab. If None is passed, the method
+                will attempt to find the currently selected tab.
+
+        """
+
+        if index == None or index == False:
             it = self.imageTabCurrent()
         else:
             it = self.imageTabFind(index)
@@ -179,10 +306,12 @@ class DisplotUi(QtWidgets.QMainWindow):
         """Closes the tab specified by the index argument.
 
         Args:
-            index: An integer specifying the index of the tab to close from
-                the left-hand side.
+            index (int): Index of the ImageTab. If None is passed, the method
+                will attempt to find the currently selected tab.
+
         """
-        if index == None:
+
+        if index == None or index == False:
             it = self.imageTabCurrent()
         else:
             it = self.imageTabFind(index)
@@ -196,10 +325,14 @@ class DisplotUi(QtWidgets.QMainWindow):
     def imageTabFind(self, index):
         """Finds the ImageTab object corresponding with the tab at specified index.
 
+        Args:
+            index (int): Index of the ImageTab to find.
+
         Returns:
-            Returns either an ImageTab object or False if no corresponding object
+            Returns either an ImageTab object, or None if no corresponding object
             was found.
         """
+
         if index == -1:
             return None
 
@@ -209,9 +342,18 @@ class DisplotUi(QtWidgets.QMainWindow):
         return None
 
     def imageTabCurrent(self):
+        """Tries to return the currently selected ImageTab object.
+
+        Returns:
+            Returns either an ImageTab object, or None if no corresponding object
+            was found.
+        """
+
         return self.imageTabFind(self.tabWidget.currentIndex())
 
     def openAbout(self):
+        """Opens the program About dialog."""
+
         dlg = AboutDialog(self.info)
         dlg.show()
         dlg.exec_()
@@ -260,14 +402,17 @@ class GenericDialog(QtWidgets.QDialog):
 
 
 class ImageTab(QtWidgets.QWidget):
-    """Tab widget container.
+    """Widget container for all of the functionality and UI elements within each
+    opened image tab.
 
     Attributes:
-        opened: Returns True if the open() method was called, False otherwise.
-        imageHandle: An Image() object reference (see imageutils.py).
-        widgetIndex: Current index of the tab in the tabWidget object.
-            Note that the index isn't static and can change based on tabs
-            being dragged around.
+        layout (:obj:`Ui_MainWindow`): Object holding all the layout definitions
+            for the encompassing widget inside each image tab, generated from
+            the .ui files in the /devel/ directory.
+        opened (bool): Is False until the open() method is called, True afterwards.
+        image (:obj:Image): An object holding the image data for the image loaded
+            within this tab.
+
     """
 
     def __init__(self, windowRef, tabWidgetRef):
@@ -286,10 +431,10 @@ class ImageTab(QtWidgets.QWidget):
         self._window = windowRef
         self._tabWidget = tabWidgetRef
 
-        self._regionPen = QtGui.QPen(QtGui.QColor.fromRgb(255,0,0))
-        self._regionSelPen = QtGui.QPen(QtGui.QColor.fromRgb(255,255,255))
-        self._regionNewPen = QtGui.QPen(QtGui.QColor.fromRgb(0,255,255))
-        self._regionMovePen = QtGui.QPen(QtGui.QColor.fromRgb(255,255,0))
+        self._regionPen = QtGui.QPen(QtGui.QColor.fromRgb(255, 0, 0))
+        self._regionSelPen = QtGui.QPen(QtGui.QColor.fromRgb(255, 255, 255))
+        self._regionNewPen = QtGui.QPen(QtGui.QColor.fromRgb(0, 255, 255))
+        self._regionMovePen = QtGui.QPen(QtGui.QColor.fromRgb(255, 255, 0))
 
         self._lastPatchSize = int(
             self.findChild(QtWidgets.QSpinBox, "value_PatchSize").cleanText())
@@ -345,6 +490,18 @@ class ImageTab(QtWidgets.QWidget):
         return self._tabWidget.indexOf(self)
 
     def open(self, imageHandle, tabName):
+        """Sets up the UI for an image loaded using the Image object functionality.
+
+        Sets the `opened` attribute to True. If said attribute has already been
+        set to true, the method will exit.
+
+        Args:
+            imageHandle (:obj:`Image`): The Image object reference containing the
+                loaded image.
+            tabName (str): The name of the tab.
+
+        """
+
         """Sets up the UI for the image referenced in imageHandle."""
         if self.opened == True:
             return
@@ -455,20 +612,22 @@ class ImageTab(QtWidgets.QWidget):
 
         stats = {**edgeData[1], **glcmData[1]}
 
-        console = ''
-        console += ("Edge detection found "
-            +str(stats['edgeDetectInitial'])+" fragments\n")
-        console += (str(stats['minAreaDiscarded'])
-            +" fragments discarded due to area being less than "+str(min_area.text())+"\n")
-        console += (str(stats['marginDiscarded'])
-            +" fragments discarded due to falling within "+str(margin.text())+" edge margin\n")
-        console += (str(len(edgeData[0]))
-            +" out of "+str(stats['edgeDetectInitial'])+" fragments labelled\n\n")
-        console += (str(stats['borderOverlapDiscarded'])
-            +" fragments discarded due to patch size out of bounds with image\n")
-        console += (str(stats['GLCMPropsDiscarded'])
-            +" fragments discarded due to not falling within set GLCM bounds\n")
-        console += (str(len(glcmData[0]))+" fragment candidates found.\n")
+        console = (
+            "Edge detection found {} fragments\n"
+            .format(stats['edgeDetectInitial'])
+            +"{} fragments discarded due to area being less than {}\n"
+            .format(stats['minAreaDiscarded'], min_area.text())
+            +"{} fragments discarded due to falling within {} edge margin\n"
+            .format(stats['marginDiscarded'], margin.text())
+            +"{} out of {} fragments labelled\n\n"
+            .format(len(edgeData[0]), stats['edgeDetectInitial'])
+            +"{} fragments discarded due to patch size out of bounds with image\n"
+            .format(stats['borderOverlapDiscarded'])
+            +"{} fragments discarded due to not falling within set GLCM bounds\n"
+            .format(stats['GLCMPropsDiscarded'])
+            +"{} fragment candidates found.\n"
+            .format(len(glcmData[0]))
+        )
         print(console)
 
         self.image.regions = glcmData[0]
@@ -572,7 +731,7 @@ class ImageTab(QtWidgets.QWidget):
 
         # Set up the monochrome colour palette
         for i in range(256):
-            result.setColor(i, QtGui.qRgb(i,i,i))
+            result.setColor(i, QtGui.qRgb(i, i, i))
 
         return result
 
@@ -630,13 +789,13 @@ class ImageTabRegion(imageutils.ImageRegion):
         self._imageView.centerOn(self._imageSceneHandle)
 
     def removeFromScene(self):
-        self._imageScene.removeItem(self._imageSceneHandle);
-        self._minimapScene.removeItem(self._minimapSceneHandle);
+        self._imageScene.removeItem(self._imageSceneHandle)
+        self._minimapScene.removeItem(self._minimapSceneHandle)
 
     def updateUi(self):
         if self._imageSceneHandle == None:
             self._imageSceneHandle = self._imageScene.addRect(
-                self.x, self.y, self.w, self.h, self._regionPen);
+                self.x, self.y, self.w, self.h, self._regionPen)
         else:
             self._imageSceneHandle.setRect(self.x, self.y, self.w, self.h)
 
@@ -654,7 +813,7 @@ class ImageTabRegion(imageutils.ImageRegion):
             self._minimapSceneHandle = self._minimapScene.addEllipse(
                 self._mmCoords[0], self._mmCoords[1],
                 self._mmCoords[2], self._mmCoords[3],
-                self._regionPen);
+                self._regionPen)
         else:
             self._minimapSceneHandle.setRect(
                 self._mmCoords[0], self._mmCoords[1],

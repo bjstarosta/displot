@@ -1,35 +1,57 @@
 # -*- coding: utf-8 -*-
+"""Displot launcher file.
+
+Note:
+    Displot is written using Python 3 and may not work using Python 2.
+
+Example:
+    Run the program by running this file in python from the command line.
+
+        $ python3 displot.py
+
+"""
+
 if __name__ == '__main__':
-    import os, sys, re
+    import sys
+    import re
     import urllib.request
     import webbrowser
 
     from ui import DisplotUi, GenericDialog
 
 
-displot_info = {
+DISPLOT_INFO = {
     'appTitle': 'displot',
-    'appVersion': '0.1',
+    'appVersion': '1.0',
     'author': 'Bohdan Starosta',
     'authorEmail': 'bjstarosta@gmail.com',
     'projectPage': 'https://github.com/bjstarosta/displot/'
 }
 
-def checkReleases(info):
-    verCheckUrl = 'https://raw.githubusercontent.com/bjstarosta/displot/master/displot/displot.py'
+def check_releases(info):
+    """Performs a check on the repository to see whether it needs to nag the
+    user to update his release.
+
+    Args:
+        info (dict): Program metadata.
+
+    """
+
+    check_url = 'https://raw.githubusercontent.com/bjstarosta/displot/master/displot/displot.py'
 
     try:
-        with urllib.request.urlopen(verCheckUrl, timeout=3) as h:
-            contents = str(h.read())
-    except urllib.error.URLError as e:
-        print("Couldn't check for new version. Error: ({}) {}".format(e.code, e.reason))
+        with urllib.request.urlopen(check_url, timeout=3) as handle:
+            contents = str(handle.read())
+    except urllib.error.URLError as err:
+        print("Couldn't check for new version. Error: ({}) {}".format(
+            err.code, err.reason))
         return
 
-    m = re.search("'appVersion': '([a-zA-Z0-9-_\.]+)',", contents)
-    if m == None:
+    repo_test = re.search(r"'appVersion': '([a-zA-Z0-9-_\.]+)',", contents)
+    if repo_test is None:
         return
 
-    ver = m.group(1)
+    ver = repo_test.group(1)
     if ver == info['appVersion']:
         return
 
@@ -42,13 +64,13 @@ def checkReleases(info):
     dlg = GenericDialog()
     dlg.setText(msg)
     dlg.setAccept(lambda: webbrowser.open(info['projectPage']))
-    dlg.setAccept(lambda: sys.exit())
+    dlg.setAccept(sys.exit)
     dlg.show()
     dlg.exec_()
 
 def main():
-    checkReleases(displot_info)
-    UI = DisplotUi(displot_info)
+    check_releases(DISPLOT_INFO)
+    UI = DisplotUi(DISPLOT_INFO)
     UI.run()
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import csv
 import numpy as np
 
 from skimage import feature
@@ -42,7 +43,27 @@ class Image(object):
             #print(tif.info())
 
     def save(self, filePath, format):
-        pass
+        if format == self.FORMAT_CSV:
+            fieldnames = [
+                'x', 'y', 'w', 'h', 'midpoint_x', 'midpoint_y',
+                'glcm_dissimilarity', 'glcm_correlation'
+            ]
+
+            with open(filePath, mode='w') as csv_file:
+                writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+                writer.writeheader()
+
+                for region in self.regions:
+                    writer.writerow({
+                        'x': region.x,
+                        'y': region.y,
+                        'w': region.w,
+                        'h': region.h,
+                        'midpoint_x': region.midpoint[0],
+                        'midpoint_y': region.midpoint[1],
+                        'glcm_dissimilarity': region.glcm['dissimilarity'],
+                        'glcm_correlation': region.glcm['correlation'],
+                    })
 
     def isLoaded(self):
         if self.data == False:
@@ -250,6 +271,8 @@ targets=(0,0), tolerances=(0,0)):
             and dissimilarity[i] <= d_interval[1]
             and correlation[i] >= c_interval[0]
             and correlation[i] <= c_interval[1]):
+                region.glcm['dissimilarity'] = dissimilarity[i]
+                region.glcm['correlation'] = correlation[i]
                 cooccuring_regions.append(region)
                 valid = True
                 break
