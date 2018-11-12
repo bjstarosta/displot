@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file './displot.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -43,7 +43,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.tabWidget, 1, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralWidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1000, 23))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1000, 22))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -94,9 +94,12 @@ class Ui_MainWindow(object):
         self.whatsNewBrowser.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Roboto\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:xx-large; font-weight:600;\">Displot</span><span style=\" font-size:large; font-weight:296;\"> - GaN Dislocation Counter</span></p>\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">This is an alpha version. Please submit feature requests and report any bugs to: <a href=\"https://github.com/bjstarosta/displot/issues\"><span style=\" text-decoration: underline; color:#0000ff;\">https://github.com/bjstarosta/displot/issues</span></a></p></body></html>"))
+"</style></head><body style=\" font-family:\'Noto Sans\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Roboto\'; font-size:24pt; font-weight:600;\">Displot</span><span style=\" font-family:\'Roboto\'; font-size:10pt; font-weight:296;\"> </span><span style=\" font-family:\'Roboto\'; font-size:14pt; font-weight:296;\">- </span><span style=\" font-family:\'Roboto\'; font-size:14pt;\">GaN Dislocation Counter</span></p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt;\">Repository address: </span><a href=\"https://github.com/bjstarosta/displot\"><span style=\" font-size:12pt; text-decoration: underline; color:#0000ff;\">https://github.com/bjstarosta/displot</span></a></p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Use the &quot;File&quot; menu to load images into the program. Currently only 8-bit greyscale TIF images are supported, support for more may be added based on need. The dislocation detection method is currently fairly crude, but should improve in further releases. For now, expect to have to help it along by marking dislocations that have been missed and unmarking false positives - the UI is designed to be as helpful with regards to that as possible. If you want to discuss anything about this program further, email me at <a href=\"mailto:bohdan.starosta@strath.ac.uk\"><span style=\" text-decoration: underline; color:#0000ff;\">bohdan.starosta@strath.ac.uk</span></a> or use the GitHub issue tracker.</p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Roboto\'; font-size:10pt;\">This is a first release version, there may be bugs. If a new version is released, expect a dialog nagging you to upgrade.</span></p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Roboto\'; font-size:10pt; font-weight:600;\">Please submit feature requests and report any bugs to: </span><a href=\"https://github.com/bjstarosta/displot/issues\"><span style=\" font-family:\'Roboto\'; font-size:10pt; font-weight:600; text-decoration: underline; color:#0000ff;\">https://github.com/bjstarosta/displot/issues</span></a></p></body></html>"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.whatsNew), _translate("MainWindow", "Welcome"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuHelp.setTitle(_translate("MainWindow", "Help"))
