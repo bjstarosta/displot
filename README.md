@@ -19,9 +19,11 @@ These instructions will get you a copy of the project up and running on your loc
 
 Download and use the newest self-contained binary provided [here](https://github.com/bjstarosta/displot/releases).
 
-#### On Windows/Linux (using python from command line):
+#### Non-OS specific (using python from command line):
 
-First clone the repository to a folder on your PC:
+First ensure that you have Python 3 installed on your PC. For Windows, you can get it from [here](https://www.python.org/downloads/windows/). For GNU/Linux based OS use your favourite package manager to download it.
+
+After you downloaded Python, either download and extract the zip containing the source code from this page, or install git and clone the repository:
 
 ```
 $ git clone https://github.com/bjstarosta/displot  
@@ -43,6 +45,8 @@ $ python setup.py develop
 Using the above commands should automatically download all the required dependencies for you, provided your python installation has pip and setuptools.
 
 #### Troubleshooting
+
+While on Windows Python comes with pip preinstalled, on GNU/Linux based OS you might need to download pip first. Most repositories should have it listed as a package however.
 
 If while launching the python script on Windows you get an error like:
 ```
