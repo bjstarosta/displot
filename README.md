@@ -42,6 +42,16 @@ $ python setup.py develop
 
 Using the above commands should automatically download all the required dependencies for you, provided your python installation has pip and setuptools.
 
+Note: If while launching the python script on Windows you get an error like:
+```
+ModuleNotFoundError: No module named 'PyQt5_sip'
+```
+Try reinstalling the package using:
+```
+$ python -m pip uninstall PyQt5_sip
+$ python -m pip install PyQt5_sip
+```
+
 ## Built With
 
 * [Python 3](https://www.python.org/)
