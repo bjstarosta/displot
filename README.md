@@ -15,10 +15,16 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Installing
 
+#### On Windows (no command line):
+
+Download and use the newest self-contained binary provided [here](https://github.com/bjstarosta/displot/releases).
+
+#### On Windows/Linux (using python from command line):
+
 First clone the repository to a folder on your PC:
 
 ```
-$ git clone https://github.com/user/foo  
+$ git clone https://github.com/bjstarosta/displot  
 $ cd displot
 ```
 
