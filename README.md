@@ -40,6 +40,8 @@ Alternatively, to use the package from within the cloned directory:
 $ python setup.py develop
 ```
 
+Using the above commands should automatically download all the required dependencies for you, provided your python installation has pip and setuptools.
+
 ## Built With
 
 * [Python 3](https://www.python.org/)
