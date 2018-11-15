@@ -15,6 +15,7 @@ if __name__ == '__main__':
     import sys
     import re
     import urllib.request
+    import ssl
     import webbrowser
 
     from ui import DisplotUi, GenericDialog
@@ -40,7 +41,8 @@ def check_releases(info):
     check_url = 'https://raw.githubusercontent.com/bjstarosta/displot/master/displot/displot.py'
 
     try:
-        with urllib.request.urlopen(check_url, timeout=3) as handle:
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+        with urllib.request.urlopen(check_url, context=ssl_context, timeout=3) as handle:
             contents = str(handle.read())
     except urllib.error.URLError as err:
         print("Couldn't check for new version. Error: ({}) {}".format(

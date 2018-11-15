@@ -48,6 +48,16 @@ Using the above commands should automatically download all the required dependen
 
 While on Windows Python comes with pip preinstalled, on GNU/Linux based OS you might need to download pip first. Most repositories should have it listed as a package however.
 
+While using setup.py you may encounter an error related to some of the dependencies:
+```
+[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1051) -- Some packages may not be found!
+```
+Running the following command fixes this issue:
+```
+$ python -m pip install certifi
+```
+After this you should run the setup.py script again, and this time the dependency installation should proceed without issues.
+
 If while launching the python script on Windows you get an error like:
 ```
 ModuleNotFoundError: No module named 'PyQt5_sip'
@@ -56,6 +66,8 @@ Try reinstalling the package using:
 ```
 $ python -m pip uninstall PyQt5_sip
 $ python -m pip install PyQt5_sip
+$ python -m pip uninstall PyQt5
+$ python -m pip install PyQt5
 ```
 
 ## Built With
