@@ -28,10 +28,11 @@ class Image(object):
     FORMAT_CSV = 'csv'
 
     def __init__(self, filePath=""):
-        self.data = False
+        self.data = None
+        self.metadata = None
         self.regions = []
 
-        self.filePath = False
+        self.filePath = None
 
         if filePath != '':
             self.load(filePath)
@@ -40,7 +41,7 @@ class Image(object):
         self.filePath = filePath
         with tifffile.TiffFile(filePath) as tif:
             self.data = tif.asarray()
-            #print(tif.info())
+            self.metadata = tif.info()
 
     def save(self, filePath, format):
         if format == self.FORMAT_CSV:
@@ -66,7 +67,7 @@ class Image(object):
                     })
 
     def isLoaded(self):
-        if self.data == False:
+        if self.data is None:
             return False
         else:
             return True
@@ -84,8 +85,8 @@ class Image(object):
 
     @property
     def dimensions(self):
-        if isinstance(self.data, bool):
-            return False
+        if self.data is None:
+            return None
         return {
             'w': self.data.shape[1],
             'h': self.data.shape[0]
