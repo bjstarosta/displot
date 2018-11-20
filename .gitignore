@@ -1,4 +1,5 @@
 displot.egg-info
+devel/feather
 *__pycache__
 *.pyc
 *.tif

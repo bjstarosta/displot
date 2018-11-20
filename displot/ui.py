@@ -102,9 +102,6 @@ class DisplotUi(QtWidgets.QMainWindow):
 
     def setStatusBarMsg(self, message="", timeout=0):
         """Shows a short message in the status bar at the bottom of the window.
-        """
-
-        """Shows a short message in the status bar at the bottom of the window.
 
         Args:
             message (str): The message to show in the status bar.

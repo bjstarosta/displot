@@ -6,11 +6,12 @@
 # resolve as they're supposed to.
 #
 # Needs pyqt5-dev-tools if you're on *buntu, and equivalent (that contains
-# pyuic5) everywhere else.
+# pyuic5 and pyrcc5) everywhere else.
 
 DIR="../displot/uiDefs/"
 PY_INIT=$DIR"__init__.py"
 PREFIX="ui_"
+SUFFIX="_rc"
 
 strjoin() {
   [ "$#" -ge 1 ] || return 1
@@ -25,7 +26,13 @@ for i in `find . -name '*.ui'`; do
   f="$PREFIX$(basename -s '.ui' $i)";
   mods+=('"'$f'"');
   echo "$DIR$f.py";
-  pyuic5 $i -o "$DIR$f.py";
+  pyuic5 $i -o "$DIR$f.py" --from-imports;
+done
+for i in `find . -name '*.qrc'`; do
+  f="$(basename -s '.qrc' $i)$SUFFIX";
+  mods+=('"'$f'"');
+  echo "$DIR$f.py";
+  pyrcc5 $i -o "$DIR$f.py";
 done
 joined=$(strjoin , "${mods[@]}")
 init+=$joined']'

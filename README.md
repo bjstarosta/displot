@@ -75,6 +75,7 @@ $ python -m pip install PyQt5
 * [Python 3](https://www.python.org/)
 * [Qt 5](http://doc.qt.io/qt-5/qt5-intro.html) - Using the [PyQt5](https://pypi.org/project/PyQt5/) bindings
 * [Qt Designer](http://doc.qt.io/qt-5/qtdesigner-manual.html) - Recommended for editing layouts
+* [Feather open source icon pack](tps://github.com/feathericons/feather)
 
 ## Versioning
 

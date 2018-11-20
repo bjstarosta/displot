@@ -302,7 +302,7 @@ class ImageTabList(QtWidgets.QTableWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.headers = ['#', 'pos:X', 'pos:Y', ' ']
+        self.headers = ['#', 'pos:X', 'pos:Y', ' ', ' ']
         self.headerItems = []
         self.tableItems = []
         self.lastColumn = 0
