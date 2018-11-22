@@ -58,18 +58,6 @@ $ python -m pip install certifi
 ```
 After this you should run the setup.py script again, and this time the dependency installation should proceed without issues.
 
-If while launching the python script on Windows you get an error like:
-```
-ModuleNotFoundError: No module named 'PyQt5_sip'
-```
-Try reinstalling the package using:
-```
-$ python -m pip uninstall PyQt5_sip
-$ python -m pip install PyQt5_sip
-$ python -m pip uninstall PyQt5
-$ python -m pip install PyQt5
-```
-
 ## Built With
 
 * [Python 3](https://www.python.org/)
