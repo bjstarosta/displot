@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file './displot_image.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -87,7 +87,7 @@ class Ui_ImageTabPrototype(object):
         self.imageToolsScroll.setWidgetResizable(True)
         self.imageToolsScroll.setObjectName("imageToolsScroll")
         self.imageToolsScrollArea = QtWidgets.QWidget()
-        self.imageToolsScrollArea.setGeometry(QtCore.QRect(0, 0, 241, 471))
+        self.imageToolsScrollArea.setGeometry(QtCore.QRect(0, 0, 242, 454))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -359,7 +359,7 @@ class Ui_ImageTabPrototype(object):
         self.button_AddFrag.setMaximumSize(QtCore.QSize(50, 16777215))
         self.button_AddFrag.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/feathericons/feather/plus-square.svg"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon.addPixmap(QtGui.QPixmap(":/feathericons/vendor/feather/icons/plus-square.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.button_AddFrag.setIcon(icon)
         self.button_AddFrag.setObjectName("button_AddFrag")
         self.horizontalLayout_2.addWidget(self.button_AddFrag)
@@ -367,7 +367,7 @@ class Ui_ImageTabPrototype(object):
         self.button_RemFrag.setMaximumSize(QtCore.QSize(50, 16777215))
         self.button_RemFrag.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/feathericons/feather/minus-square.svg"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon1.addPixmap(QtGui.QPixmap(":/feathericons/vendor/feather/icons/minus-square.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.button_RemFrag.setIcon(icon1)
         self.button_RemFrag.setObjectName("button_RemFrag")
         self.horizontalLayout_2.addWidget(self.button_RemFrag)
@@ -375,7 +375,7 @@ class Ui_ImageTabPrototype(object):
         self.button_MovFrag.setMaximumSize(QtCore.QSize(50, 16777215))
         self.button_MovFrag.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(":/feathericons/feather/move.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(QtGui.QPixmap(":/feathericons/vendor/feather/icons/move.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.button_MovFrag.setIcon(icon2)
         self.button_MovFrag.setObjectName("button_MovFrag")
         self.horizontalLayout_2.addWidget(self.button_MovFrag)

@@ -176,8 +176,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>241</width>
-                <height>471</height>
+                <width>242</width>
+                <height>454</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -767,9 +767,8 @@
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset>
-                  <normalon>:/feathericons/feather/plus-square.svg</normalon>
-                 </iconset>
+                 <iconset resource="feathericons.qrc">
+                  <normaloff>:/feathericons/vendor/feather/icons/plus-square.svg</normaloff>:/feathericons/vendor/feather/icons/plus-square.svg</iconset>
                 </property>
                </widget>
               </item>
@@ -789,9 +788,8 @@ Selection is controlled using the checkboxes in the table above.</string>
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset>
-                  <normalon>:/feathericons/feather/minus-square.svg</normalon>
-                 </iconset>
+                 <iconset resource="feathericons.qrc">
+                  <normaloff>:/feathericons/vendor/feather/icons/minus-square.svg</normaloff>:/feathericons/vendor/feather/icons/minus-square.svg</iconset>
                 </property>
                </widget>
               </item>
@@ -812,7 +810,7 @@ Selection is controlled by highlighting a row in the table above.</string>
                 </property>
                 <property name="icon">
                  <iconset resource="feathericons.qrc">
-                  <normaloff>:/feathericons/feather/move.svg</normaloff>:/feathericons/feather/move.svg</iconset>
+                  <normaloff>:/feathericons/vendor/feather/icons/move.svg</normaloff>:/feathericons/vendor/feather/icons/move.svg</iconset>
                 </property>
                </widget>
               </item>
