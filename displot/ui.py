@@ -453,9 +453,9 @@ class ImageTab(QtWidgets.QWidget):
         self._minimapView.imageTab = self
 
         # Init list widget
-        self._fragmentList = self.findChild(QtWidgets.QTableWidget, "fragmentList")
+        self._fragmentList = self.findChild(QtWidgets.QTableView, "fragmentList")
         self._fragmentList.imageTab = self
-        self._fragmentList.itemSelectionChanged.connect(self._selectedFragment)
+        #self._fragmentList.itemSelectionChanged.connect(self._selectedFragment)
 
         # Init button events
         self._imageScanBtn = self.findChild(QtWidgets.QPushButton, "button_Scan")
@@ -469,6 +469,9 @@ class ImageTab(QtWidgets.QWidget):
         self._fragMovBtn = self.findChild(QtWidgets.QPushButton, "button_MovFrag")
         self._fragMovBtn.clicked.connect(self._moveSelFragment)
         self._imageView.clickedRegionMove.connect(self.moveFragment)
+        self._cntrFragBtn = self.findChild(QtWidgets.QPushButton, "button_AutoCenterFrags")
+        self._hideFragBtn = self.findChild(QtWidgets.QPushButton, "button_HideAllFrags")
+        self._hideFragBtn.clicked.connect(self.toggleFragmentVisibility)
 
     def setTabLabel(self, label):
         """Sets the tab label to the specified text.
@@ -649,12 +652,18 @@ class ImageTab(QtWidgets.QWidget):
             )
             frag.show()
 
-        self._fragmentList.setDataList(self.image.regions)
+        self._fragmentList.setData(self.image.regions)
         self._imageScanBtn.setEnabled(True)
 
     def unhighlightAllFragments(self):
         for frag in self.image.regions:
             frag.highlight(False)
+
+    def toggleFragmentVisibility(self):
+        if self._hideFragBtn.isChecked() == True:
+            self.hideAllFragments()
+        else:
+            self.showAllFragments()
 
     def showAllFragments(self):
         for frag in self.image.regions:
@@ -676,18 +685,23 @@ class ImageTab(QtWidgets.QWidget):
             selPen=self._regionSelPen
         )
         frag.show()
-        self._fragmentList.addRow(frag)
+
+        row = self._fragmentList.model.rowCount()
+        self._fragmentList.model.addDataObject(frag)
+        self._fragmentList.model.insertRows(row, 1)
+        self._fragmentList.resetView()
         self.image.regions.append(frag)
+        #print(len(self.image.regions))
 
     def _moveSelFragment(self):
         sel = self._fragmentList.selectedItems()
-        if len(sel) == 0:
+        if sel is None:
             self._window.setStatusBarMsg(
                 'No fragment selected.'
-                +' Select a fragment in the list, then click the "Mov" button.', 3)
+                +' Select a fragment in the list, then click the move button.', 3)
             return
 
-        self._movingFragment = sel[0].fragmentRef
+        self._movingFragment = sel
         self._imageView.setMouseMode(WorkImageView.MODE_REGION_MOVE)
 
     def moveFragment(self, x, y, frag=None):
@@ -695,17 +709,19 @@ class ImageTab(QtWidgets.QWidget):
             frag = self._movingFragment
             self._movingFragment = None
 
-        sel = self._fragmentList.selectedItems()
-        self._fragmentList.updateRow(sel[0].row(), x, y)
         frag.move(x, y)
         frag.updateUi()
+        changed_row = self._fragmentList.model.getDataObjectRow(frag)
+        self._fragmentList.model.notifyDataChanged(changed_row)
 
     def deleteSelFragments(self):
-        rows = self._fragmentList.getCheckedFragments()
+        rows = self._fragmentList.model.getCheckedDataObjects()
         for frag in rows:
-            frag.fragmentRef.removeFromScene()
-            self.image.regions.remove(frag.fragmentRef)
-            self._fragmentList.removeRow(frag.row())
+            row = self._fragmentList.model.getDataObjectRow(frag)
+            if not row is None:
+                self._fragmentList.model.removeRows(row, 1)
+                frag.removeFromScene()
+                self.image.regions.remove(frag)
 
     def _selectedFragment(self):
         """A UI cleanup method that resets the mouse mode on ImageView if the
@@ -734,11 +750,33 @@ class ImageTab(QtWidgets.QWidget):
 
 
 class ImageTabRegion(imageutils.ImageRegion):
+    """Reimplementation of ImageRegion that includes hooks into the UI
+    representation of dislocation regions.
+
+    Attributes:
+        isDrawn (bool): True if the UI element corresponding to this region
+            has been created. False otherwise.
+        isHighlighted (bool): True if the UI element corresponding to this region
+            has been highlighted on the QGraphicsView. False otherwise.
+        isSelected (bool): True if the region's checkbox is currently selected
+            in the ImageTabList widget. False otherwise.
+            Note: This value does not change when simply selecting rows in
+            ImageTabList, it only responds to the checkbox.
+        isHighlighted (bool): True if the UI element corresponding to this region
+            has been hidden on the QGraphicsView. False otherwise.
+        hasUi (bool): True if the object contains the necessary UI references
+            to manipulate the UI, i.e. if the initUi() method has been called.
+            False otherwise.
+
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.isDrawn = False
         self.isHighlighted = False
+        self.isSelected = False
+        self.isHidden = False
         self.hasUi = False
 
         self._imageScene = None
@@ -767,10 +805,12 @@ class ImageTabRegion(imageutils.ImageRegion):
             self.updateUi()
         self._imageSceneHandle.show()
         self._minimapSceneHandle.show()
+        self.isHidden = False
 
     def hide(self):
         self._imageSceneHandle.hide()
         self._minimapSceneHandle.hide()
+        self.isHidden = True
 
     def highlight(self, toggle=True):
         if toggle == True:

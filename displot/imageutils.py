@@ -116,8 +116,8 @@ class ImageRegion(object):
 
     @property
     def midpoint(self):
-        x = self.x + (self.w / 2)
-        y = self.y + (self.h / 2)
+        x = round(self.x + (self.w / 2))
+        y = round(self.y + (self.h / 2))
         return (x, y)
 
     def setSize(self, x, y, w, h):
@@ -131,6 +131,16 @@ class ImageRegion(object):
         self.x = x
         self.y = y
         self.bbox = (y, x, self.bbox[2], self.bbox[3])
+
+    def moveMidpoint(self, x=None, y=None):
+        if x is None:
+            x = self.midpoint[0]
+        if y is None:
+            y = self.midpoint[1]
+
+        x = round(x - (self.w / 2))
+        y = round(y - (self.h / 2))
+        self.move(x, y)
 
     def resize(self, w, h):
         self.w = w

@@ -110,7 +110,7 @@
           <enum>QTabWidget::Rounded</enum>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <property name="usesScrollButtons">
           <bool>true</bool>
@@ -176,8 +176,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>242</width>
-                <height>454</height>
+                <width>241</width>
+                <height>471</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -686,17 +686,14 @@
              <property name="sortingEnabled">
               <bool>true</bool>
              </property>
-             <attribute name="horizontalHeaderCascadingSectionResizes">
-              <bool>false</bool>
-             </attribute>
              <attribute name="horizontalHeaderDefaultSectionSize">
-              <number>20</number>
+              <number>70</number>
+             </attribute>
+             <attribute name="horizontalHeaderHighlightSections">
+              <bool>false</bool>
              </attribute>
              <attribute name="horizontalHeaderMinimumSectionSize">
               <number>20</number>
-             </attribute>
-             <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
-              <bool>true</bool>
              </attribute>
              <attribute name="horizontalHeaderStretchLastSection">
               <bool>false</bool>
@@ -704,11 +701,17 @@
              <attribute name="verticalHeaderVisible">
               <bool>false</bool>
              </attribute>
+             <attribute name="verticalHeaderCascadingSectionResizes">
+              <bool>false</bool>
+             </attribute>
              <attribute name="verticalHeaderDefaultSectionSize">
-              <number>20</number>
+              <number>1</number>
              </attribute>
              <attribute name="verticalHeaderMinimumSectionSize">
               <number>20</number>
+             </attribute>
+             <attribute name="verticalHeaderStretchLastSection">
+              <bool>false</bool>
              </attribute>
             </widget>
            </item>
@@ -733,6 +736,47 @@
               <property name="bottomMargin">
                <number>0</number>
               </property>
+              <item>
+               <widget class="QPushButton" name="button_HideAllFrags">
+                <property name="toolTip">
+                 <string>Toggle this button to show/hide all fragments.</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="feathericons.qrc">
+                  <normaloff>:/feathericons/vendor/feather/icons/eye-off.svg</normaloff>:/feathericons/vendor/feather/icons/eye-off.svg</iconset>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="button_AutoCenterFrags">
+                <property name="toolTip">
+                 <string>Toggle this button to control whether the view will
+automatically center on fragments selected on the list.</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="feathericons.qrc">
+                  <normaloff>:/feathericons/vendor/feather/icons/map-pin.svg</normaloff>:/feathericons/vendor/feather/icons/map-pin.svg</iconset>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
               <item>
                <spacer name="horizontalSpacer">
                 <property name="orientation">
@@ -1079,7 +1123,7 @@ Selection is controlled by highlighting a row in the table above.</string>
   </customwidget>
   <customwidget>
    <class>ImageTabList</class>
-   <extends>QTableWidget</extends>
+   <extends>QTableView</extends>
    <header>ui_widgets</header>
   </customwidget>
  </customwidgets>

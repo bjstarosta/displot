@@ -297,12 +297,307 @@ class MinimapView(DisplotGraphicsView):
             self._drawViewboxEv(e)
 
 
-class ImageTabList(QtWidgets.QTableWidget):
+class ImageTabList(QtWidgets.QTableView):
+    """Custom TableView implementation for the dislocation list on each image tab.
+
+    Attributes:
+        model (:obj:`ImageTabListModel`): The data model contained within the
+            ImageTabList table.
+
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._imageTab = None
+        self.model = None
+
+        self.setData([])
+
+    @property
+    def imageTab(self):
+        return self._imageTab
+
+    @imageTab.setter
+    def imageTab(self, obj):
+        if not isinstance(obj, QtWidgets.QWidget):
+            raise TypeError('Value needs to be an instance of QtWidgets.QWidget')
+        self._imageTab = obj
+
+    def setData(self, data):
+        """Constructs a model object and passes the argument data to it.
+
+        Calling this method will automatically populate the table with the data
+        list passed to it.
+
+        Args:
+            mode (list): A list of ImageTabRegion objects.
+
+        """
+        self.model = ImageTabListModel(data, self)
+        self.setModel(self.model)
+        self.resetView()
+        self.setItemDelegateForColumn(2, ImageTabListFragColour(self))
+        self.setItemDelegateForColumn(3, ImageTabListFragVisibility(self))
+        self.setItemDelegateForColumn(4, ImageTabListCheckBox(self))
+
+    def resetView(self):
+        """Resets the table column width and adjusts header settings.
+
+        """
+        hheader = self.horizontalHeader()
+        hheader.setSectionResizeMode(QtWidgets.QHeaderView.Fixed)
+        self.resizeRowsToContents()
+
+        self.setColumnWidth(0, 70)
+        self.setColumnWidth(1, 70)
+        self.setColumnWidth(2, 30)
+        self.setColumnWidth(3, 30)
+        self.setColumnWidth(4, 30)
+
+    def selectedItems(self):
+        ind = self.selectedIndexes()
+        if len(ind) > 0:
+            return self.model.getDataObject(ind[0].row())
+        return None
+
+    def selectionChanged(self, selected, deselected):
+        if not self._imageTab is None:
+            self._imageTab._cntrFragBtn
+            self._imageTab.unhighlightAllFragments()
+            sel = self.selectedItems()
+            if not sel is None:
+                if self._imageTab._cntrFragBtn.isChecked() == True:
+                    sel.centerOn()
+                sel.highlight()
+
+        super().selectionChanged(selected, deselected)
+
+
+class ImageTabListModel(QtCore.QAbstractTableModel):
+    """Data model for the dislocation list.
+
+    Used to prepare and display data within the QTableView it is attached to.
+    Note that this class accepts a list of objects (ImageTabRegion like) as its
+    data input. Note that even though lists and objects are mutable in Python,
+    it's not guaranteed that data changes imposed on the model will be reflected
+    on the data list originally passed to the model. Changes to individual objects
+    generally will be, while additions of new objects will not without explicit
+    handling.
+
+    See http://doc.qt.io/qt-5/qabstractitemmodel.html for a detailed description
+    of reimplemented functions.
+
+    Attributes:
+        modelData (list): The data model contained within the
+            ImageTabList table.
+        modelIndices (list): List of string values for each individual row.
+
+    """
+
+    def __init__(self, input, parent=None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self.modelData = input
+        self.modelIndices = list(map(str, range(1, len(self.modelData) + 1)))
+        self.headers = ['Pos:X', 'Pos:Y', 'c', 'v', 's']
+        self._addQueue = []
+
+    def getDataObject(self, row):
+        if row >= len(self.modelData):
+            return None
+        return self.modelData[row]
+
+    def getDataObjectRow(self, obj):
+        try:
+            return self.modelData.index(obj)
+        except ValueError:
+            pass
+
+    def getCheckedDataObjects(self):
+        ret = []
+        for obj in self.modelData:
+            if obj.isSelected == False:
+                continue
+            ret.append(obj)
+        return ret
+
+    def addDataObject(self, obj):
+        self._addQueue.append(obj)
+
+    def notifyDataChanged(self, row=None):
+        self.dataChanged.emit(
+            self.createIndex(row, 0),
+            self.createIndex(row, 4),
+            [QtCore.Qt.DisplayRole]
+        )
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.modelData)
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        return len(self.headers)
+
+    def headerData(self, section, orientation, role):
+        if role != QtCore.Qt.DisplayRole:
+            return QtCore.QVariant()
+
+        if orientation == QtCore.Qt.Horizontal:
+            return self.headers[section]
+        elif orientation == QtCore.Qt.Vertical:
+            return self.modelIndices[section]
+
+    def data(self, index, role):
+        if not index.isValid():
+            return QtCore.QVariant()
+
+        if role == QtCore.Qt.DisplayRole:
+            if index.column() == 0:
+                return QtCore.QVariant(self.modelData[index.row()].midpoint[0])
+            if index.column() == 1:
+                return QtCore.QVariant(self.modelData[index.row()].midpoint[1])
+            if index.column() == 2:
+                #value = self.modelData[index.row()]
+                return QtCore.QVariant()
+                #return QtCore.QVariant(self.modelData[index.row()].isHidden)
+            return QtCore.QVariant()
+
+        if role == QtCore.Qt.CheckStateRole and index.column() == 4:
+            if self.modelData[index.row()].isSelected == True:
+                return QtCore.Qt.Checked
+            else:
+                return QtCore.Qt.Unchecked
+
+    def setData(self, index, value, role):
+        if not index.isValid():
+            return False
+
+        if role == QtCore.Qt.EditRole:
+            if index.column() < 2:
+                try:
+                    value = int(value)
+                except ValueError:
+                    return False
+
+            if index.column() == 0:
+                self.modelData[index.row()].moveMidpoint(x=value)
+                self.modelData[index.row()].updateUi()
+            if index.column() == 1:
+                self.modelData[index.row()].moveMidpoint(y=value)
+                self.modelData[index.row()].updateUi()
+
+        if role == QtCore.Qt.CheckStateRole and index.column() == 4:
+            if value == QtCore.Qt.Checked:
+                self.modelData[index.row()].isSelected = True
+            else:
+                self.modelData[index.row()].isSelected = False
+
+        return super().setData(index, value, role)
+
+    def insertRows(self, row, count, parent=QtCore.QModelIndex()):
+        if count != len(self._addQueue):
+            return False
+
+        row_last = row + count - 1
+        row_nextindex = len(self.modelIndices) + 1
+
+        self.beginInsertRows(parent, row, row_last)
+        self.modelData[row:row] = self._addQueue
+        self.modelIndices[row:row] = list(map(str, range(row_nextindex, row_nextindex + count)))
+        self._addQueue = []
+        self.endInsertRows()
+        return True
+
+    def removeRows(self, row, count, parent=QtCore.QModelIndex()):
+        row_last = row + count
+
+        self.beginRemoveRows(parent, row, row_last)
+        del self.modelData[row:row_last]
+        del self.modelIndices[row:row_last]
+        self.endRemoveRows()
+        return True
+
+    def flags(self, index):
+        if index.column() == 4:
+            return QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled
+
+        return QtCore.Qt.ItemIsEditable | super().flags(index)
+
+
+class ImageTabListFragColour(QtWidgets.QStyledItemDelegate):
+    pass
+
+
+class ImageTabListFragVisibility(QtWidgets.QStyledItemDelegate):
+    def paint(self, painter, option, index):
+        """icon2 = QtGui.QIcon()
+        icon2.addPixmap(QtGui.QPixmap(":/feathericons/vendor/feather/icons/move.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.button_MovFrag.setIcon(icon2)"""
+        super().paint(painter, option, index)
+
+
+class ImageTabListCheckBox(QtWidgets.QStyledItemDelegate):
+    def paint(self, painter, option, index):
+        text_margin = QtWidgets.QApplication.style().pixelMetric(QtWidgets.QStyle.PM_FocusFrameHMargin) + 1
+        option.rect = QtWidgets.QStyle.alignedRect(
+            option.direction,
+            QtCore.Qt.AlignCenter,
+            QtCore.QSize(
+                option.decorationSize.width() + 5,
+                option.decorationSize.height()
+            ),
+            QtCore.QRect(
+                option.rect.x() + text_margin,
+                option.rect.y(),
+                option.rect.width() - (2 * text_margin),
+                option.rect.height()
+            )
+        )
+        super().paint(painter, option, index)
+
+    def editorEvent(self, event, model, option, index):
+        flags = model.flags(index)
+        if not flags & QtCore.Qt.ItemIsUserCheckable or not flags & QtCore.Qt.ItemIsEnabled:
+            return False
+
+        value = index.data(QtCore.Qt.CheckStateRole)
+        if not value in [QtCore.Qt.Checked, QtCore.Qt.Unchecked]:
+            return False
+
+        if event.type() == QtCore.QEvent.MouseButtonRelease:
+            text_margin = QtWidgets.QApplication.style().pixelMetric(QtWidgets.QStyle.PM_FocusFrameHMargin) + 1
+            check_rect = QtWidgets.QStyle.alignedRect(
+                option.direction,
+                QtCore.Qt.AlignCenter,
+                option.decorationSize,
+                QtCore.QRect(
+                    option.rect.x() + (2 * text_margin),
+                    option.rect.y(),
+                    option.rect.width() - (2 * text_margin),
+                    option.rect.height()
+                )
+            )
+            if not check_rect.contains(event.pos()):
+                return False
+        elif event.type() == QtCore.QEvent.KeyPress:
+            if event.key() != QtCore.Qt.Key_Select:
+                return False
+        else:
+            return False
+
+        if value == QtCore.Qt.Checked:
+            state = QtCore.Qt.Unchecked
+        else:
+            state = QtCore.Qt.Checked
+
+        return model.setData(index, state, QtCore.Qt.CheckStateRole)
+
+
+"""class ImageTabList(QtWidgets.QTableWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.headers = ['#', 'pos:X', 'pos:Y', ' ', ' ']
+        self.headers = ['pos:X', 'pos:Y', ' ', ' ']
         self.headerItems = []
         self.tableItems = []
         self.lastColumn = 0
@@ -320,9 +615,9 @@ class ImageTabList(QtWidgets.QTableWidget):
             raise TypeError('Value needs to be an instance of QtWidgets.QWidget')
         self._imageTab = obj
 
-    def setDataList(self, list):
+    def setDataList(self, datalist):
         self.setEnabled(False)
-
+        print(datalist)
         if len(self.headerItems) > 0:
             self.clearContents()
         else:
@@ -332,10 +627,11 @@ class ImageTabList(QtWidgets.QTableWidget):
         self.tableItems = []
 
         row = 0
-        for obj in list:
+        for obj in datalist:
             self.addRow(obj, row)
             row += 1
 
+        self.setVerticalHeaderLabels(list(map(str, range(1, len(datalist)))))
         self.resizeColumnsToContents()
         self.setEnabled(True)
 
@@ -352,25 +648,30 @@ class ImageTabList(QtWidgets.QTableWidget):
         fCenter = QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter
 
         items = []
-        items.append(QtWidgets.QTableWidgetItem(str(row+1)))
-        items[0].fragmentRef = obj
-        items[0].setFlags(fNoEdit)
-        items[0].setTextAlignment(fCenter)
+        i = 0
+
+        #items.append(QtWidgets.QTableWidgetItem(str(row+1)))
+        #items[i].fragmentRef = obj
+        #self.setItem(row, i, items[i])
+        #i += 1
 
         items.append(QtWidgets.QTableWidgetItem(str(obj.x)))
-        items.append(QtWidgets.QTableWidgetItem(str(obj.y)))
-        items[1].setFlags(fNoEdit)
-        items[2].setFlags(fNoEdit)
+        items[i].setFlags(fNoEdit)
+        items[i].fragmentRef = obj
+        self.setItem(row, i, items[i])
+        i += 1
 
-        col = 0
-        for item in items:
-            self.setItem(row, col, item)
-            col += 1
+        items.append(QtWidgets.QTableWidgetItem(str(obj.y)))
+        items[i].setFlags(fNoEdit)
+        self.setItem(row, i, items[i])
+        i += 1
 
         cb = ImageTabListCheckbox(self, items[0])
         cb.setStyleSheet("margin-left:50%; margin-right:50%;")
-        self.setCellWidget(row, col, cb)
+        self.setCellWidget(row, i, cb)
         items.append(cb)
+
+        #self.setVerticalHeaderItem(row, QtWidgets.QTableWidgetItem(str(row+1)))
 
         self.resizeColumnsToContents()
         self.tableItems.append(items)
@@ -457,3 +758,4 @@ class ImageTabListCheckbox(QtWidgets.QCheckBox):
 
     def getRow(self):
         return self.tableWidget.row(self.rowFirstWidget)
+"""
