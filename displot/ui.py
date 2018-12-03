@@ -219,6 +219,8 @@ class DisplotUi(QtWidgets.QMainWindow):
 
         self.setStatusBarMsg('Saving image file: ' + filepath)
 
+        self.image.regions = self._fragmentList.model.modelData
+
         if mimetype == 'image/png':
             im_dim = it.image.dimensions
             pixmap = QtGui.QPixmap(im_dim['w'], im_dim['h'])
@@ -455,6 +457,7 @@ class ImageTab(QtWidgets.QWidget):
         # Init list widget
         self._fragmentList = self.findChild(QtWidgets.QTableView, "fragmentList")
         self._fragmentList.imageTab = self
+        self._fragmentList.modelDataChanged.connect(self.refreshFragmentVisibility)
         #self._fragmentList.itemSelectionChanged.connect(self._selectedFragment)
 
         # Init button events
@@ -665,12 +668,19 @@ class ImageTab(QtWidgets.QWidget):
         else:
             self.showAllFragments()
 
+    def refreshFragmentVisibility(self):
+        for frag in self._fragmentList.model.modelData:
+            if frag.isHidden == True:
+                frag.hide()
+            else:
+                frag.show()
+
     def showAllFragments(self):
-        for frag in self.image.regions:
+        for frag in self._fragmentList.model.modelData:
             frag.show()
 
     def hideAllFragments(self):
-        for frag in self.image.regions:
+        for frag in self._fragmentList.model.modelData:
             frag.hide()
 
     def addNewFragment(self, x, y):
@@ -690,8 +700,6 @@ class ImageTab(QtWidgets.QWidget):
         self._fragmentList.model.addDataObject(frag)
         self._fragmentList.model.insertRows(row, 1)
         self._fragmentList.resetView()
-        self.image.regions.append(frag)
-        #print(len(self.image.regions))
 
     def _moveSelFragment(self):
         sel = self._fragmentList.selectedItems()
@@ -712,7 +720,8 @@ class ImageTab(QtWidgets.QWidget):
         frag.move(x, y)
         frag.updateUi()
         changed_row = self._fragmentList.model.getDataObjectRow(frag)
-        self._fragmentList.model.notifyDataChanged(changed_row)
+        if not changed_row is None:
+            self._fragmentList.model.notifyDataChanged(changed_row)
 
     def deleteSelFragments(self):
         rows = self._fragmentList.model.getCheckedDataObjects()
@@ -721,7 +730,6 @@ class ImageTab(QtWidgets.QWidget):
             if not row is None:
                 self._fragmentList.model.removeRows(row, 1)
                 frag.removeFromScene()
-                self.image.regions.remove(frag)
 
     def _selectedFragment(self):
         """A UI cleanup method that resets the mouse mode on ImageView if the
