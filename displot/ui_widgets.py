@@ -39,7 +39,7 @@ class DisplotGraphicsView(QtWidgets.QGraphicsView):
             pen (QPen): The pen used to draw the rectangle.
 
         Returns:
-            QGraphicsRectItem: The rectangle.
+            QGraphicsRectItem: The rectangle graphical handle.
         """
 
         scene = self.scene()
@@ -375,6 +375,13 @@ class ImageTabList(QtWidgets.QTableView):
 
         super().selectionChanged(selected, deselected)
 
+    def mousePressEvent(self, e):
+        if e.buttons() & QtCore.Qt.LeftButton:
+            index = self.indexAt(e.pos())
+            if index.column() == 2:
+                self.edit(index)
+        super().mousePressEvent(e)
+
 
 class ImageTabListModel(QtCore.QAbstractTableModel):
     """Data model for the dislocation list.
@@ -407,17 +414,43 @@ class ImageTabListModel(QtCore.QAbstractTableModel):
         self._addQueue = []
 
     def getDataObject(self, row):
+        """Returns the ImageTabRegion object corresponding to the specified row.
+
+        Args:
+            row (int): Number of the row in the table.
+
+        Returns:
+            ImageTabRegion: The region object corresponding to the specified row.
+
+        """
         if row >= len(self.modelData):
             return None
         return self.modelData[row]
 
     def getDataObjectRow(self, obj):
+        """Tries to return the row corresponding to the passed ImageTabRegion
+        object.
+
+        Args:
+            obj (:obj:`ImageTabRegion`): ImageTabRegion object to compare.
+
+        Returns:
+            int: An integer describing the row offset.
+
+        """
         try:
             return self.modelData.index(obj)
         except ValueError:
             return None
 
     def getCheckedDataObjects(self):
+        """Returns all of the ImageTabRegion data objects that have their
+        checkbox marked by the user.
+
+        Returns:
+            list: A list of ImageTabRegion objects.
+
+        """
         ret = []
         for obj in self.modelData:
             if obj.isSelected == False:
@@ -426,13 +459,27 @@ class ImageTabListModel(QtCore.QAbstractTableModel):
         return ret
 
     def addDataObject(self, obj):
+        """Adds an ImageTabRegion objects to the addition queue for the table view.
+
+        Note: Nothing will be added until the insertRows method is called
+        specifying the exact offset in the table view to which these objects
+        should be added as new rows.
+
+        Args:
+            obj (:obj:`ImageTabRegion`): ImageTabRegion object to add.
+
+        """
         self._addQueue.append(obj)
 
     def notifyDataChanged(self, row=None):
+        """A helper object that emits the dataChanged trigger with the correct
+        indices despite only specifying a row number.
+
+        """
         self.dataChanged.emit(
             self.createIndex(row, 0),
             self.createIndex(row, 4),
-            [QtCore.Qt.DisplayRole]
+            []
         )
 
     def rowCount(self, parent=QtCore.QModelIndex()):
@@ -545,10 +592,41 @@ class ImageTabListModel(QtCore.QAbstractTableModel):
 
 
 class ImageTabListFragColour(QtWidgets.QStyledItemDelegate):
-    pass
+
+    def createEditor(self, parent, option, index):
+        if index.column() != 2:
+            return super().createEditor(parent, option, index)
+
+        cb = QtWidgets.QComboBox(parent)
+        cb.addItem("1")
+        cb.addItem("2")
+        cb.addItem("3")
+        cb.showPopup()
+
+        return cb
+
+    def setEditorData(self, editor, index):
+        if editor != None:
+            cbi = editor.findText(index.data(QtCore.Qt.EditRole))
+            if cbi >= 0:
+                editor.setCurrentIndex(cbi)
+        else:
+            return super().setEditorData(editor, index)
+
+    def setModelData(self, editor, model, index):
+        if editor != None:
+            model.setData(index, editor.currentText(), QtCore.Qt.EditRole)
+        else:
+            return super().setEditorData(editor, model, index)
 
 
 class ImageTabListFragVisibility(QtWidgets.QItemDelegate):
+    """Delegate class for the individual item visibility checkbox.
+
+    See http://doc.qt.io/qt-5/qitemdelegate.html for a detailed description
+    of reimplemented functions.
+
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -595,6 +673,12 @@ class ImageTabListFragVisibility(QtWidgets.QItemDelegate):
 
 
 class ImageTabListCheckBox(QtWidgets.QItemDelegate):
+    """Delegate class for the persistent checkbox selection.
+
+    See http://doc.qt.io/qt-5/qitemdelegate.html for a detailed description
+    of reimplemented functions.
+
+    """
 
     def paint(self, painter, option, index):
         if index.data(QtCore.Qt.CheckStateRole) == QtCore.Qt.Checked:
