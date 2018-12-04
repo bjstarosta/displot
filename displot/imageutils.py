@@ -3,6 +3,8 @@ import os
 import csv
 import numpy as np
 
+from scipy.cluster import vq
+
 from skimage import feature
 from skimage.morphology import label
 from skimage.measure import regionprops
@@ -150,7 +152,7 @@ class ImageRegion(object):
         self.bbox = (self.bbox[0], self.bbox[1], h, w)
 
 
-def edgeDetection(image, sigma=1., min_area=0, margin=0,
+def edge_detection(image, sigma=1., min_area=0, margin=0,
 region_class=ImageRegion):
     """Canny edge detection for highlighting features of interest on images.
 
@@ -212,7 +214,7 @@ region_class=ImageRegion):
 
     return region_list, stats
 
-def testGLCM(image, region_list,
+def test_glcm(image, region_list,
 distances=[4], angles=[0, np.pi/2], patch_size=25,
 targets=(0,0), tolerances=(0,0)):
     """Grey level cooccurence matrix properties calculating function.
@@ -295,5 +297,12 @@ targets=(0,0), tolerances=(0,0)):
 
     return cooccuring_regions, stats
 
-def removeOverlappedRegions(region_list, allowed_overlap=0):
+def cluster_analysis(region_list, k):
+    points = []
+    for region in region_list:
+        pass
+
+    return region_list
+
+def remove_overlapped_regions(region_list, allowed_overlap=0):
     pass

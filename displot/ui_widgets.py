@@ -350,9 +350,9 @@ class ImageTabList(QtWidgets.QTableView):
 
         self.setColumnWidth(0, 70)
         self.setColumnWidth(1, 70)
-        self.setColumnWidth(2, 30)
-        self.setColumnWidth(3, 30)
-        self.setColumnWidth(4, 30)
+        self.setColumnWidth(2, 22)
+        self.setColumnWidth(3, 22)
+        self.setColumnWidth(4, 22)
 
     def selectedItems(self):
         ind = self.selectedIndexes()
@@ -671,7 +671,7 @@ class ImageTabListFragVisibility(QtWidgets.QItemDelegate):
             QtGui.QIcon.Normal,
             QtGui.QIcon.Off
         )
-        self.iconSize = 20
+        self.iconSize = 14
 
     def paint(self, painter, option, index):
         painter.save()
@@ -682,7 +682,10 @@ class ImageTabListFragVisibility(QtWidgets.QItemDelegate):
             state = QtGui.QIcon.Off
 
         pixmap = self.icon.pixmap(self.iconSize, self.iconSize, QtGui.QIcon.Normal, state)
-        xy = (option.rect.x() + (option.rect.width() / 2) - (self.iconSize / 2), option.rect.y())
+        xy = (
+            option.rect.x() + (option.rect.width() / 2) - (self.iconSize / 2),
+            option.rect.y() + (option.rect.height() / 2) - (self.iconSize / 2)
+        )
         painter.drawPixmap(xy[0], xy[1], pixmap)
         super().drawFocus(painter, option, option.rect)
 
@@ -715,7 +718,7 @@ class ImageTabListCheckBox(QtWidgets.QItemDelegate):
         else:
             state = QtCore.Qt.Unchecked
 
-        super().drawCheck(painter, option, option.rect, state)
+        #super().drawCheck(painter, option, option.rect, state)
         super().drawFocus(painter, option, option.rect)
         super().paint(painter, option, index)
 

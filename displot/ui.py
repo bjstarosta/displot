@@ -4,7 +4,7 @@ import sys
 import gc
 import numpy as np
 
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 from displot.uiDefs import ui_displot, ui_displot_about, ui_displot_dialog, ui_displot_image
 
 import displot.imageutils as imageutils
@@ -296,8 +296,9 @@ class DisplotUi(QtWidgets.QMainWindow):
         if it == None:
             return
 
-        dlg = GenericDialog()
-        dlg.setText('Are you sure you want to close this tab?')
+        dlg = GenericDialog(parent=self)
+        dlg.setText('Changes will be unsaved. Are you sure you want to close this tab?')
+        dlg.setWindowTitle('Are you sure?')
         dlg.setAccept(lambda: self.imageTabClose(index))
         dlg.show()
         dlg.exec_()
@@ -382,11 +383,19 @@ class GenericDialog(QtWidgets.QDialog):
     """Generic dialog window object.
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.layout = ui_displot_dialog.Ui_DialogBox()
         self.layout.setupUi(self)
+
+        self.setWindowFlag(QtCore.Qt.Dialog)
+        self.setWindowFlag(QtCore.Qt.CustomizeWindowHint)
+        self.setWindowFlag(QtCore.Qt.WindowTitleHint)
+        self.setWindowFlag(QtCore.Qt.WindowMinimizeButtonHint, False)
+        self.setWindowFlag(QtCore.Qt.WindowMaximizeButtonHint, False)
+        self.setWindowFlag(QtCore.Qt.WindowCloseButtonHint, False)
+        self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
 
     def setText(self, text):
         label = self.findChild(QtWidgets.QLabel, "dialogText")
@@ -579,7 +588,7 @@ class ImageTab(QtWidgets.QWidget):
         self._window.setStatusBarMsg(
             'Scanning for dislocations... (edge detection)')
 
-        edgeData = imageutils.edgeDetection(
+        edgeData = imageutils.edge_detection(
             image=self.image.data,
             sigma=sigma.cleanText(),
             min_area=min_area.cleanText(),
@@ -601,7 +610,7 @@ class ImageTab(QtWidgets.QWidget):
             angles.append((angles_i * np.pi) / angles_num)
             angles_i += 1
 
-        glcmData = imageutils.testGLCM(
+        glcmData = imageutils.test_glcm(
             image=self.image.data,
             region_list=edgeData[0],
             angles=angles,
@@ -637,6 +646,11 @@ class ImageTab(QtWidgets.QWidget):
         for frag in self.image.regions:
             frag.resize(patch_size_int, patch_size_int)
             # TODO: overlap detection goes here
+
+        self._window.setStatusBarMsg(
+            'Analysing clusters...')
+
+        self.image.regions = imageutils.cluster_analysis(self.image.regions, 4)
 
         self._window.setStatusBarMsg(
             'Done. {} dislocation candidates found.'.format(len(self.image.regions)))
@@ -879,11 +893,11 @@ class ImageTabRegionStyle(object):
             QtGui.QPen(QtGui.QColor(0xEEEE00)),
             QtGui.QPen(QtGui.QColor(0x00CC00)),
             QtGui.QPen(QtGui.QColor(0xDD0000)),
-            QtGui.QPen(QtGui.QColor(0xEEEEBB)),
-            QtGui.QPen(QtGui.QColor(0x558800)),
+            QtGui.QPen(QtGui.QColor(0x6666FF)),
+            QtGui.QPen(QtGui.QColor(0x88BB00)),
             QtGui.QPen(QtGui.QColor(0xFFBB00)),
             QtGui.QPen(QtGui.QColor(0x00BBFF)),
-            QtGui.QPen(QtGui.QColor(0xAAAAAA))
+            QtGui.QPen(QtGui.QColor(0xCCCCCC))
         ]
 
         self.defaultPen = self.userPens[len(self.userPens)-1]
