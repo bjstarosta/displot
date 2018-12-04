@@ -16,8 +16,8 @@ class Image(object):
     Attributes:
         data: False if no data has been loaded, otherwise is a 2-dim list of
             pixel values.
-        fileSize: Size of the image file in human readable format.
-        filePath: returns the OS path to the file, will be False unless the
+        file_size: Size of the image file in human readable format.
+        file_path: returns the OS path to the file, will be False unless the
             load() method is called.
         dimensions: returns a (width, height) tuple with the size of the image,
             or False if an image was not yet loaded.
@@ -27,30 +27,31 @@ class Image(object):
     FORMAT_PNG = 'png'
     FORMAT_CSV = 'csv'
 
-    def __init__(self, filePath=""):
+    def __init__(self, file_path=""):
         self.data = None
         self.metadata = None
         self.regions = []
+        self.cluster_id = None
 
-        self.filePath = None
+        self.file_path = None
 
-        if filePath != '':
-            self.load(filePath)
+        if file_path != '':
+            self.load(file_path)
 
-    def load(self, filePath):
-        self.filePath = filePath
-        with tifffile.TiffFile(filePath) as tif:
+    def load(self, file_path):
+        self.file_path = file_path
+        with tifffile.TiffFile(file_path) as tif:
             self.data = tif.asarray()
             self.metadata = tif.info()
 
-    def save(self, filePath, format):
+    def save(self, file_path, format):
         if format == self.FORMAT_CSV:
             fieldnames = [
                 'x', 'y', 'w', 'h', 'midpoint_x', 'midpoint_y',
-                'glcm_dissimilarity', 'glcm_correlation'
+                'glcm_dissimilarity', 'glcm_correlation', 'cluster_id'
             ]
 
-            with open(filePath, mode='w') as csv_file:
+            with open(file_path, mode='w') as csv_file:
                 writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
                 writer.writeheader()
 
@@ -64,20 +65,21 @@ class Image(object):
                         'midpoint_y': region.midpoint[1],
                         'glcm_dissimilarity': region.glcm['dissimilarity'],
                         'glcm_correlation': region.glcm['correlation'],
+                        'cluster_id': self.cluster_id
                     })
 
-    def isLoaded(self):
+    def is_loaded(self):
         if self.data is None:
             return False
         else:
             return True
 
     @property
-    def fileSize(self):
-        if not os.path.isfile(self.filePath):
+    def file_size(self):
+        if not os.path.isfile(self.file_path):
             return 0
 
-        size = os.stat(self.filePath).st_size
+        size = os.stat(self.file_path).st_size
         for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
             if size < 1024.0:
                 return "%3.1f %s" % (size, x)

@@ -548,5 +548,5 @@ class Ui_ImageTabPrototype(object):
         self.label_zoom.setText(_translate("ImageTabPrototype", "Zoom:"))
         self.zoomDial.setSuffix(_translate("ImageTabPrototype", "%"))
 
-from ui_widgets import ImageTabList, MinimapView, WorkImageView
+from displot.ui_widgets import ImageTabList, MinimapView, WorkImageView
 from . import feathericons_rc

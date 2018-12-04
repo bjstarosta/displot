@@ -44,6 +44,12 @@ $ python setup.py develop
 
 Using the above commands should automatically download all the required dependencies for you, provided your python installation has pip and setuptools.
 
+Once you have installed the package, it can be launched from the command line using:
+
+```
+$ python -m displot
+```
+
 #### Troubleshooting
 
 While on Windows Python comes with pip preinstalled, on GNU/Linux based OS you might need to download pip first. Most repositories should have it listed as a package however.

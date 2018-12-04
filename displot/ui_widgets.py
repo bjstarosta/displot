@@ -100,14 +100,13 @@ class WorkImageView(DisplotGraphicsView):
         self.mouseMode = self.MODE_NORMAL
         self.mouseGraphicsItem = None
         self.zoomLevel = 1
+        self.regionStyle = None
 
         self._labelX = None
         self._labelY = None
 
         self._regionNewHandle = None
         self._regionMoveHandle = None
-        self.regionNewPen = None
-        self.regionMovePen = None
 
         self.setMouseTracking(True)
 
@@ -186,11 +185,11 @@ class WorkImageView(DisplotGraphicsView):
 
         if self.mouseMode == self.MODE_REGION_NEW:
             self._regionNewHandle = self.drawOverlayRect(self._regionNewHandle,
-                m_x, m_y, psize, psize, max_w, max_h, self.regionNewPen)
+                m_x, m_y, psize, psize, max_w, max_h, self.regionStyle.newCursorPen)
 
         if self.mouseMode == self.MODE_REGION_MOVE:
             self._regionMoveHandle = self.drawOverlayRect(self._regionMoveHandle,
-                m_x, m_y, psize, psize, max_w, max_h, self.regionMovePen)
+                m_x, m_y, psize, psize, max_w, max_h, self.regionStyle.moveCursorPen)
 
     def resizeEvent(self, e):
         if self.imageTab.opened == True:
@@ -313,8 +312,6 @@ class ImageTabList(QtWidgets.QTableView):
         self._imageTab = None
         self.model = None
 
-        self.setData([])
-
     @property
     def imageTab(self):
         return self._imageTab
@@ -339,7 +336,7 @@ class ImageTabList(QtWidgets.QTableView):
         self.model.dataChanged.connect(lambda: self.modelDataChanged.emit())
         self.setModel(self.model)
         self.resetView()
-        self.setItemDelegateForColumn(2, ImageTabListFragColour(self))
+        self.setItemDelegateForColumn(2, ImageTabListFragColour(self, self.imageTab._window.imageTabRegionStyle))
         self.setItemDelegateForColumn(3, ImageTabListFragVisibility(self))
         self.setItemDelegateForColumn(4, ImageTabListCheckBox(self))
 
@@ -506,12 +503,10 @@ class ImageTabListModel(QtCore.QAbstractTableModel):
                 return QtCore.QVariant(self.modelData[index.row()].midpoint[0])
             if index.column() == 1:
                 return QtCore.QVariant(self.modelData[index.row()].midpoint[1])
-            if index.column() == 2:
-                #value = self.modelData[index.row()]
-                return QtCore.QVariant()
-                #return QtCore.QVariant(self.modelData[index.row()].isHidden)
 
         if role == QtCore.Qt.DecorationRole:
+            if index.column() == 2:
+                return self.modelData[index.row()].currentPen
             if index.column() == 3:
                 if self.modelData[index.row()].isHidden == True:
                     return True
@@ -540,22 +535,26 @@ class ImageTabListModel(QtCore.QAbstractTableModel):
 
             if index.column() == 0:
                 self.modelData[index.row()].moveMidpoint(x=value)
-                self.modelData[index.row()].updateUi()
+                self.modelData[index.row()].updateUiPos()
             if index.column() == 1:
                 self.modelData[index.row()].moveMidpoint(y=value)
-                self.modelData[index.row()].updateUi()
+                self.modelData[index.row()].updateUiPos()
 
-        if role == QtCore.Qt.DecorationRole and index.column() == 3:
-            if value == True:
-                self.modelData[index.row()].isHidden = True
-            else:
-                self.modelData[index.row()].isHidden = False
+        if role == QtCore.Qt.DecorationRole:
+            if index.column() == 2:
+                self.modelData[index.row()].setPen(value)
+            if index.column() == 3:
+                if value == True:
+                    self.modelData[index.row()].isHidden = True
+                else:
+                    self.modelData[index.row()].isHidden = False
 
-        if role == QtCore.Qt.CheckStateRole and index.column() == 4:
-            if value == QtCore.Qt.Checked:
-                self.modelData[index.row()].isSelected = True
-            else:
-                self.modelData[index.row()].isSelected = False
+        if role == QtCore.Qt.CheckStateRole:
+            if index.column() == 4:
+                if value == QtCore.Qt.Checked:
+                    self.modelData[index.row()].isSelected = True
+                else:
+                    self.modelData[index.row()].isSelected = False
 
         self.dataChanged.emit(index, index, [role])
         return super().setData(index, value, role)
@@ -591,33 +590,63 @@ class ImageTabListModel(QtCore.QAbstractTableModel):
         return QtCore.Qt.ItemIsEditable | super().flags(index)
 
 
-class ImageTabListFragColour(QtWidgets.QStyledItemDelegate):
+class ImageTabListFragColour(QtWidgets.QItemDelegate):
+
+    def __init__(self, parent, style, *args, **kwargs):
+        self._regionStyle = style
+        self._colorIcons = []
+        self._cb = None
+
+        for pen in self._regionStyle.userPens:
+            pixmap = QtGui.QPixmap(12, 12)
+            pixmap.fill(pen.color())
+            self._colorIcons.append(QtGui.QIcon(pixmap))
+
+        super().__init__(parent, *args, **kwargs)
+
+    def paint(self, painter, option, index):
+        painter.save()
+
+        pen = index.data(QtCore.Qt.DecorationRole)
+        pixmap = QtGui.QPixmap(option.rect.width(), option.rect.height())
+        pixmap.fill(pen.color())
+        painter.drawPixmap(option.rect.x(), option.rect.y(), pixmap)
+        super().drawFocus(painter, option, option.rect)
+
+        painter.restore()
+        super().paint(painter, option, index)
 
     def createEditor(self, parent, option, index):
         if index.column() != 2:
             return super().createEditor(parent, option, index)
 
-        cb = QtWidgets.QComboBox(parent)
-        cb.addItem("1")
-        cb.addItem("2")
-        cb.addItem("3")
-        cb.showPopup()
+        self._cb = QtWidgets.QComboBox(parent)
+        for icon in self._colorIcons:
+            self._cb.addItem(icon, "")
+        self._cb.currentIndexChanged.connect(self.commitAndSaveData)
+        self._cb.showPopup()
 
-        return cb
+        return self._cb
 
     def setEditorData(self, editor, index):
-        if editor != None:
-            cbi = editor.findText(index.data(QtCore.Qt.EditRole))
-            if cbi >= 0:
-                editor.setCurrentIndex(cbi)
-        else:
+        if editor == None:
             return super().setEditorData(editor, index)
 
+        currentPen = index.data(QtCore.Qt.DecorationRole)
+        boxIndex = self._regionStyle.userPens.index(currentPen)
+        if boxIndex >= 0:
+            editor.setCurrentIndex(boxIndex)
+
     def setModelData(self, editor, model, index):
-        if editor != None:
-            model.setData(index, editor.currentText(), QtCore.Qt.EditRole)
-        else:
+        if editor == None:
             return super().setEditorData(editor, model, index)
+
+        newPen = self._regionStyle.userPens[editor.currentIndex()]
+        model.setData(index, newPen, QtCore.Qt.DecorationRole)
+
+    def commitAndSaveData(self):
+        self.commitData.emit(self._cb)
+        self.closeEditor.emit(self._cb)
 
 
 class ImageTabListFragVisibility(QtWidgets.QItemDelegate):

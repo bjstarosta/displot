@@ -3,7 +3,7 @@ import sys
 
 from setuptools import setup, find_packages
 from setuptools.command import install, develop
-from displot.displot import DISPLOT_INFO
+from displot.config import DISPLOT_INFO
 
 
 def pip_install(package):

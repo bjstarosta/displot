@@ -1114,17 +1114,17 @@ Selection is controlled by highlighting a row in the table above.</string>
   <customwidget>
    <class>MinimapView</class>
    <extends>QGraphicsView</extends>
-   <header>ui_widgets</header>
+   <header>displot/ui_widgets</header>
   </customwidget>
   <customwidget>
    <class>WorkImageView</class>
    <extends>QGraphicsView</extends>
-   <header>ui_widgets</header>
+   <header>displot/ui_widgets</header>
   </customwidget>
   <customwidget>
    <class>ImageTabList</class>
    <extends>QTableView</extends>
-   <header>ui_widgets</header>
+   <header>displot/ui_widgets</header>
   </customwidget>
  </customwidgets>
  <resources>

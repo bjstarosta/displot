@@ -7,27 +7,19 @@ Note:
 Example:
     Run the program by running this file in python from the command line.
 
-        $ python3 displot.py
+        $ python -m displot.py
 
 """
 
-if __name__ == '__main__':
-    import sys
-    import re
-    import urllib.request
-    import ssl
-    import webbrowser
+import sys
+import re
+import urllib.request
+import ssl
+import webbrowser
 
-    from ui import DisplotUi, GenericDialog
+from displot.ui import DisplotUi, GenericDialog
+from displot.config import DISPLOT_INFO
 
-
-DISPLOT_INFO = {
-    'appTitle': 'displot',
-    'appVersion': '1.0',
-    'author': 'Bohdan Starosta',
-    'authorEmail': 'bjstarosta@gmail.com',
-    'projectPage': 'https://github.com/bjstarosta/displot/'
-}
 
 def check_releases(info):
     """Performs a check on the repository to see whether it needs to nag the
@@ -75,5 +67,5 @@ def main():
     UI = DisplotUi(DISPLOT_INFO)
     UI.run()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

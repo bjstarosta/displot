@@ -5,10 +5,10 @@ import gc
 import numpy as np
 
 from PyQt5 import QtGui, QtWidgets
-from uiDefs import ui_displot, ui_displot_about, ui_displot_dialog, ui_displot_image
+from displot.uiDefs import ui_displot, ui_displot_about, ui_displot_dialog, ui_displot_image
 
-import imageutils
-from ui_widgets import WorkImageView
+import displot.imageutils as imageutils
+from displot.ui_widgets import WorkImageView
 
 
 class DisplotUi(QtWidgets.QMainWindow):
@@ -54,6 +54,7 @@ class DisplotUi(QtWidgets.QMainWindow):
         self.layout.setupUi(self)
 
         self.imageTabs = []
+        self.imageTabRegionStyle = ImageTabRegionStyle()
 
         # Reference important UI objects
         self.tabWidget = self.findChild(QtWidgets.QTabWidget, "tabWidget")
@@ -430,11 +431,6 @@ class ImageTab(QtWidgets.QWidget):
         self._window = windowRef
         self._tabWidget = tabWidgetRef
 
-        self._regionPen = QtGui.QPen(QtGui.QColor.fromRgb(255, 0, 0))
-        self._regionSelPen = QtGui.QPen(QtGui.QColor.fromRgb(255, 255, 255))
-        self._regionNewPen = QtGui.QPen(QtGui.QColor.fromRgb(0, 255, 255))
-        self._regionMovePen = QtGui.QPen(QtGui.QColor.fromRgb(255, 255, 0))
-
         self._lastPatchSize = int(
             self.findChild(QtWidgets.QSpinBox, "value_PatchSize").cleanText())
         self._movingFragment = None
@@ -444,9 +440,8 @@ class ImageTab(QtWidgets.QWidget):
         self._imageView = self.findChild(QtWidgets.QGraphicsView, "imageView")
         self._imageView.setScene(self._imageScene)
         self._imageView.imageTab = self
+        self._imageView.regionStyle = self._window.imageTabRegionStyle
         self._imageView.initEvents()
-        self._imageView.regionNewPen = self._regionNewPen
-        self._imageView.regionMovePen = self._regionMovePen
 
         # Init minimap layout objects
         self._minimapScene = QtWidgets.QGraphicsScene()
@@ -476,6 +471,8 @@ class ImageTab(QtWidgets.QWidget):
         self._hideFragBtn = self.findChild(QtWidgets.QPushButton, "button_HideAllFrags")
         self._hideFragBtn.clicked.connect(self.toggleFragmentVisibility)
 
+        self._fragmentList.setData([])
+
     def setTabLabel(self, label):
         """Sets the tab label to the specified text.
 
@@ -486,7 +483,7 @@ class ImageTab(QtWidgets.QWidget):
 
     @property
     def filePath(self):
-        return self.image.filePath
+        return self.image.file_path
 
     @property
     def widgetIndex(self):
@@ -519,10 +516,10 @@ class ImageTab(QtWidgets.QWidget):
         self._minimapView.drawViewbox()
 
         # Populate the infobox
-        ibText = '"' + imageHandle.filePath + '"'
+        ibText = '"' + imageHandle.file_path + '"'
         ibText += ' [W:' + str(imageHandle.dimensions['w'])
         ibText += ', H:' + str(imageHandle.dimensions['h']) + ']'
-        ibText += ' [' + imageHandle.fileSize + ']'
+        ibText += ' [' + imageHandle.file_size + ']'
         infoBox = self.findChild(QtWidgets.QLabel, "imageInfoLabel")
         infoBox.setText(ibText)
 
@@ -649,9 +646,7 @@ class ImageTab(QtWidgets.QWidget):
                 imgScene=self._imageScene,
                 imgView=self._imageView,
                 minimapScene=self._minimapScene,
-                minimapView=self._minimapView,
-                defPen=self._regionPen,
-                selPen=self._regionSelPen
+                minimapView=self._minimapView
             )
             frag.show()
 
@@ -659,7 +654,7 @@ class ImageTab(QtWidgets.QWidget):
         self._imageScanBtn.setEnabled(True)
 
     def unhighlightAllFragments(self):
-        for frag in self.image.regions:
+        for frag in self._fragmentList.model.modelData:
             frag.highlight(False)
 
     def toggleFragmentVisibility(self):
@@ -690,9 +685,7 @@ class ImageTab(QtWidgets.QWidget):
             imgScene=self._imageScene,
             imgView=self._imageView,
             minimapScene=self._minimapScene,
-            minimapView=self._minimapView,
-            defPen=self._regionPen,
-            selPen=self._regionSelPen
+            minimapView=self._minimapView
         )
         frag.show()
 
@@ -718,7 +711,7 @@ class ImageTab(QtWidgets.QWidget):
             self._movingFragment = None
 
         frag.move(x, y)
-        frag.updateUi()
+        frag.updateUiPos()
         changed_row = self._fragmentList.model.getDataObjectRow(frag)
         if not changed_row is None:
             self._fragmentList.model.notifyDataChanged(changed_row)
@@ -787,30 +780,33 @@ class ImageTabRegion(imageutils.ImageRegion):
         self.isHidden = False
         self.hasUi = False
 
+        self.currentPen = None
+
         self._imageScene = None
         self._imageSceneHandle = None
         self._imageView = None
         self._minimapScene = None
         self._minimapSceneHandle = None
         self._minimapView = None
-        self._regionPen = None
-        self._regionSelPen = None
 
     def initUi(self,
     imageTab=None, imgScene=None, imgView=None,
-    minimapScene=None, minimapView=None,
-    defPen=None, selPen=None):
+    minimapScene=None, minimapView=None, pen=None):
         self._imageScene = imgScene
         self._imageView = imgView
         self._minimapScene = minimapScene
         self._minimapView = minimapView
-        self._regionPen = defPen
-        self._regionSelPen = selPen
+
+        if pen is None:
+            self.currentPen = self._imageView.regionStyle.defaultPen
+        else:
+            self.currentPen = pen
+
         self.hasUi = True
 
     def show(self):
         if self.isDrawn == False:
-            self.updateUi()
+            self.updateUiPos()
         self._imageSceneHandle.show()
         self._minimapSceneHandle.show()
         self.isHidden = False
@@ -820,14 +816,21 @@ class ImageTabRegion(imageutils.ImageRegion):
         self._minimapSceneHandle.hide()
         self.isHidden = True
 
+    def setPen(self, pen):
+        if self.isDrawn == False:
+            self.updateUiPos()
+        self.currentPen = pen
+        self._imageSceneHandle.setPen(self.currentPen)
+        self._minimapSceneHandle.setPen(self.currentPen)
+
     def highlight(self, toggle=True):
         if toggle == True:
-            self._imageSceneHandle.setPen(self._regionSelPen)
-            self._minimapSceneHandle.setPen(self._regionSelPen)
+            self._imageSceneHandle.setPen(self._imageView.regionStyle.highlightPen)
+            self._minimapSceneHandle.setPen(self._imageView.regionStyle.highlightPen)
             self.isHighlighted = True
         else:
-            self._imageSceneHandle.setPen(self._regionPen)
-            self._minimapSceneHandle.setPen(self._regionPen)
+            self._imageSceneHandle.setPen(self.currentPen)
+            self._minimapSceneHandle.setPen(self.currentPen)
             self.isHighlighted = False
 
     def centerOn(self):
@@ -837,10 +840,10 @@ class ImageTabRegion(imageutils.ImageRegion):
         self._imageScene.removeItem(self._imageSceneHandle)
         self._minimapScene.removeItem(self._minimapSceneHandle)
 
-    def updateUi(self):
+    def updateUiPos(self):
         if self._imageSceneHandle == None:
             self._imageSceneHandle = self._imageScene.addRect(
-                self.x, self.y, self.w, self.h, self._regionPen)
+                self.x, self.y, self.w, self.h, self.currentPen)
         else:
             self._imageSceneHandle.setRect(self.x, self.y, self.w, self.h)
 
@@ -858,10 +861,32 @@ class ImageTabRegion(imageutils.ImageRegion):
             self._minimapSceneHandle = self._minimapScene.addEllipse(
                 self._mmCoords[0], self._mmCoords[1],
                 self._mmCoords[2], self._mmCoords[3],
-                self._regionPen)
+                self.currentPen)
         else:
             self._minimapSceneHandle.setRect(
                 self._mmCoords[0], self._mmCoords[1],
                 self._mmCoords[2], self._mmCoords[3])
 
         self.isDrawn = True
+
+
+class ImageTabRegionStyle(object):
+
+    def __init__(self):
+
+        self.userPens = [
+            #QtGui.QPen(QtGui.QColor(0x004499)),
+            QtGui.QPen(QtGui.QColor(0xEEEE00)),
+            QtGui.QPen(QtGui.QColor(0x00CC00)),
+            QtGui.QPen(QtGui.QColor(0xDD0000)),
+            QtGui.QPen(QtGui.QColor(0xEEEEBB)),
+            QtGui.QPen(QtGui.QColor(0x558800)),
+            QtGui.QPen(QtGui.QColor(0xFFBB00)),
+            QtGui.QPen(QtGui.QColor(0x00BBFF)),
+            QtGui.QPen(QtGui.QColor(0xAAAAAA))
+        ]
+
+        self.defaultPen = self.userPens[len(self.userPens)-1]
+        self.highlightPen = QtGui.QPen(QtGui.QColor(0xFFFFFF))
+        self.newCursorPen = QtGui.QPen(QtGui.QColor(0xF20884))
+        self.moveCursorPen = QtGui.QPen(QtGui.QColor(0x02ABEA))
