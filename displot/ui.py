@@ -9,6 +9,7 @@ from displot.uiDefs import ui_displot, ui_displot_about, ui_displot_dialog, ui_d
 
 import displot.imageutils as imageutils
 from displot.ui_widgets import WorkImageView
+from displot.datamodels import RegionModel
 
 
 class DisplotUi(QtWidgets.QMainWindow):
@@ -480,7 +481,9 @@ class ImageTab(QtWidgets.QWidget):
         self._hideFragBtn = self.findChild(QtWidgets.QPushButton, "button_HideAllFrags")
         self._hideFragBtn.clicked.connect(self.toggleFragmentVisibility)
 
-        self._fragmentList.setData([])
+        # Set up the region list data model
+        self.model = RegionModel()
+        self._fragmentList.setModel(self.model)
 
     def setTabLabel(self, label):
         """Sets the tab label to the specified text.
@@ -664,11 +667,12 @@ class ImageTab(QtWidgets.QWidget):
             )
             frag.show()
 
-        self._fragmentList.setData(self.image.regions)
+        self.model.setDataList(self.image.regions)
+        self._fragmentList.resetView()
         self._imageScanBtn.setEnabled(True)
 
     def unhighlightAllFragments(self):
-        for frag in self._fragmentList.model.modelData:
+        for frag in self.model.modelData:
             frag.highlight(False)
 
     def toggleFragmentVisibility(self):
@@ -678,18 +682,18 @@ class ImageTab(QtWidgets.QWidget):
             self.showAllFragments()
 
     def refreshFragmentVisibility(self):
-        for frag in self._fragmentList.model.modelData:
+        for frag in self.model.modelData:
             if frag.isHidden == True:
                 frag.hide()
             else:
                 frag.show()
 
     def showAllFragments(self):
-        for frag in self._fragmentList.model.modelData:
+        for frag in self.model.modelData:
             frag.show()
 
     def hideAllFragments(self):
-        for frag in self._fragmentList.model.modelData:
+        for frag in self.model.modelData:
             frag.hide()
 
     def addNewFragment(self, x, y):
@@ -703,9 +707,9 @@ class ImageTab(QtWidgets.QWidget):
         )
         frag.show()
 
-        row = self._fragmentList.model.rowCount()
-        self._fragmentList.model.addDataObject(frag)
-        self._fragmentList.model.insertRows(row, 1)
+        row = self.model.rowCount()
+        self.model.addDataObject(frag)
+        self.model.insertRows(row, 1)
         self._fragmentList.resetView()
 
     def _moveSelFragment(self):
@@ -726,16 +730,16 @@ class ImageTab(QtWidgets.QWidget):
 
         frag.move(x, y)
         frag.updateUiPos()
-        changed_row = self._fragmentList.model.getDataObjectRow(frag)
+        changed_row = self.model.getDataObjectRow(frag)
         if not changed_row is None:
-            self._fragmentList.model.notifyDataChanged(changed_row)
+            self.model.notifyDataChanged(changed_row)
 
     def deleteSelFragments(self):
-        rows = self._fragmentList.model.getCheckedDataObjects()
+        rows = self.model.getCheckedDataObjects()
         for frag in rows:
-            row = self._fragmentList.model.getDataObjectRow(frag)
+            row = self.model.getDataObjectRow(frag)
             if not row is None:
-                self._fragmentList.model.removeRows(row, 1)
+                self.model.removeRows(row, 1)
                 frag.removeFromScene()
 
     def _selectedFragment(self):
