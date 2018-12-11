@@ -383,7 +383,8 @@ class ImageTabListFragColour(QtWidgets.QItemDelegate):
     def paint(self, painter, option, index):
         painter.save()
 
-        pen = index.data(QtCore.Qt.DecorationRole)
+        #pen = index.data(QtCore.Qt.DecorationRole)
+        pen = self._regionStyle.userPens[index.data(QtCore.Qt.DisplayRole)]
         pixmap = QtGui.QPixmap(option.rect.width(), option.rect.height())
         pixmap.fill(pen.color())
         painter.drawPixmap(option.rect.x(), option.rect.y(), pixmap)
@@ -409,7 +410,8 @@ class ImageTabListFragColour(QtWidgets.QItemDelegate):
             return super().setEditorData(editor, index)
 
         currentPen = index.data(QtCore.Qt.DecorationRole)
-        boxIndex = self._regionStyle.userPens.index(currentPen)
+        #boxIndex = self._regionStyle.userPens.index(currentPen)
+        boxIndex = index.data(QtCore.Qt.DisplayRole)
         if boxIndex >= 0:
             editor.setCurrentIndex(boxIndex)
 
@@ -419,6 +421,7 @@ class ImageTabListFragColour(QtWidgets.QItemDelegate):
 
         newPen = self._regionStyle.userPens[editor.currentIndex()]
         model.setData(index, newPen, QtCore.Qt.DecorationRole)
+        model.setData(index, editor.currentIndex(), QtCore.Qt.EditRole)
 
     def commitAndSaveData(self):
         self.commitData.emit(self._cb)

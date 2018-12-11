@@ -130,6 +130,8 @@ class RegionModel(QtCore.QAbstractTableModel):
                 return QtCore.QVariant(self.modelData[index.row()].midpoint[0])
             if index.column() == 1:
                 return QtCore.QVariant(self.modelData[index.row()].midpoint[1])
+            if index.column() == 2:
+                return QtCore.QVariant(self.modelData[index.row()].cluster_id)
 
         if role == QtCore.Qt.DecorationRole:
             if index.column() == 2:
@@ -166,6 +168,8 @@ class RegionModel(QtCore.QAbstractTableModel):
             if index.column() == 1:
                 self.modelData[index.row()].moveMidpoint(y=value)
                 self.modelData[index.row()].updateUiPos()
+            if index.column() == 2:
+                self.modelData[index.row()].cluster_id = value
 
         if role == QtCore.Qt.DecorationRole:
             if index.column() == 2:

@@ -587,6 +587,7 @@ class ImageTab(QtWidgets.QWidget):
             QtWidgets.QDoubleSpinBox,
             "value_CorrelationTolerance"
         )
+        centroids = self.findChild(QtWidgets.QSpinBox, "value_Centroids")
 
         self._window.setStatusBarMsg(
             'Scanning for dislocations... (edge detection)')
@@ -653,7 +654,7 @@ class ImageTab(QtWidgets.QWidget):
         self._window.setStatusBarMsg(
             'Analysing clusters...')
 
-        self.image.regions = imageutils.cluster_analysis(self.image.regions, 4)
+        self.image.regions = imageutils.cluster_analysis(self.image.regions, int(centroids.cleanText()))
 
         self._window.setStatusBarMsg(
             'Done. {} dislocation candidates found.'.format(len(self.image.regions)))
@@ -663,7 +664,8 @@ class ImageTab(QtWidgets.QWidget):
                 imgScene=self._imageScene,
                 imgView=self._imageView,
                 minimapScene=self._minimapScene,
-                minimapView=self._minimapView
+                minimapView=self._minimapView,
+                pen=self._window.imageTabRegionStyle.userPens[frag.cluster_id]
             )
             frag.show()
 

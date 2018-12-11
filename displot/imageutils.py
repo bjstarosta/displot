@@ -300,7 +300,13 @@ targets=(0,0), tolerances=(0,0)):
 def cluster_analysis(region_list, k):
     points = []
     for region in region_list:
-        pass
+        points.append([float(region.midpoint[0]), float(region.midpoint[0])])
+    points = np.array(points)
+
+    km = vq.kmeans2(points, k, iter=10, thresh=1e-05, minit='points', missing='warn')
+
+    for i, cluster in enumerate(km[1]):
+        region_list[i].cluster_id = cluster
 
     return region_list
 
