@@ -82,7 +82,7 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Noto Sans'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Roboto'; font-size:24pt; font-weight:600;&quot;&gt;Displot&lt;/span&gt;&lt;span style=&quot; font-family:'Roboto'; font-size:10pt; font-weight:296;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; font-family:'Roboto'; font-size:14pt; font-weight:296;&quot;&gt;- &lt;/span&gt;&lt;span style=&quot; font-family:'Roboto'; font-size:14pt;&quot;&gt;GaN Dislocation Counter&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Repository address: &lt;/span&gt;&lt;a href=&quot;https://github.com/bjstarosta/displot&quot;&gt;&lt;span style=&quot; font-size:12pt; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/bjstarosta/displot&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Use the &amp;quot;File&amp;quot; menu to load images into the program. Currently only 8-bit greyscale TIF images are supported, support for more may be added based on need. The dislocation detection method is currently fairly crude, but should improve in further releases. For now, expect to have to help it along by marking dislocations that have been missed and unmarking false positives - the UI is designed to be as helpful with regards to that as possible. If you want to discuss anything about this program further, email me at &lt;a href=&quot;mailto:bohdan.starosta@strath.ac.uk&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;bohdan.starosta@strath.ac.uk&lt;/span&gt;&lt;/a&gt; or use the GitHub issue tracker.&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Use the &amp;quot;File&amp;quot; menu to load images into the program. Only 8-bit greyscale TIF images are supported, support for more may be added based on need. The dislocation detection method is currently crude, but should improve in further releases. For now, expect to have to help it along by marking dislocations that have been missed and unmarking false positives - the UI is designed to be as helpful with regards to that as possible. If you want to discuss anything about this program further, email me at &lt;a href=&quot;mailto:bohdan.starosta@strath.ac.uk&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;bohdan.starosta@strath.ac.uk&lt;/span&gt;&lt;/a&gt; or use the GitHub issue tracker.&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Roboto'; font-size:10pt;&quot;&gt;This is a first release version, there may be bugs. If a new version is released, expect a dialog nagging you to upgrade.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Roboto'; font-size:10pt; font-weight:600;&quot;&gt;Please submit feature requests and report any bugs to: &lt;/span&gt;&lt;a href=&quot;https://github.com/bjstarosta/displot/issues&quot;&gt;&lt;span style=&quot; font-family:'Roboto'; font-size:10pt; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/bjstarosta/displot/issues&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
@@ -133,6 +133,35 @@ p, li { white-space: pre-wrap; }
    <property name="enabled">
     <bool>true</bool>
    </property>
+  </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>16</width>
+     <height>16</height>
+    </size>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextBesideIcon</enum>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionSelectObject"/>
+   <addaction name="actionHideAllObjects"/>
+   <addaction name="actionMoveObject"/>
+   <addaction name="actionDeleteObject"/>
+   <addaction name="separator"/>
+   <addaction name="actionExcludeArea"/>
   </widget>
   <action name="actionAbout">
    <property name="text">
@@ -189,7 +218,73 @@ p, li { white-space: pre-wrap; }
     <string>Close Image</string>
    </property>
   </action>
+  <action name="actionExcludeArea">
+   <property name="icon">
+    <iconset resource="feathericons.qrc">
+     <normaloff>:/feathericons/vendor/feather/icons/minus-square.svg</normaloff>:/feathericons/vendor/feather/icons/minus-square.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Exclude Area</string>
+   </property>
+   <property name="toolTip">
+    <string>Select an area on the image to exclude all search results from.</string>
+   </property>
+  </action>
+  <action name="actionSelectObject">
+   <property name="icon">
+    <iconset resource="feathericons.qrc">
+     <normaloff>:/feathericons/vendor/feather/icons/navigation-2.svg</normaloff>:/feathericons/vendor/feather/icons/navigation-2.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Select Object</string>
+   </property>
+   <property name="toolTip">
+    <string>Object selection tool.</string>
+   </property>
+  </action>
+  <action name="actionMoveObject">
+   <property name="icon">
+    <iconset resource="feathericons.qrc">
+     <normaloff>:/feathericons/vendor/feather/icons/move.svg</normaloff>:/feathericons/vendor/feather/icons/move.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Move Object</string>
+   </property>
+   <property name="toolTip">
+    <string>Move selected object.</string>
+   </property>
+  </action>
+  <action name="actionDeleteObject">
+   <property name="icon">
+    <iconset resource="feathericons.qrc">
+     <normaloff>:/feathericons/vendor/feather/icons/x.svg</normaloff>:/feathericons/vendor/feather/icons/x.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Delete Objects</string>
+   </property>
+   <property name="toolTip">
+    <string>Drag a box to delete all objects under it.</string>
+   </property>
+  </action>
+  <action name="actionHideAllObjects">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="feathericons.qrc">
+     <normaloff>:/feathericons/vendor/feather/icons/eye.svg</normaloff>
+     <normalon>:/feathericons/vendor/feather/icons/eye-off.svg</normalon>:/feathericons/vendor/feather/icons/eye.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Hide All Objects</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle hiding all feature objects.</string>
+   </property>
+  </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="feathericons.qrc"/>
+ </resources>
  <connections/>
 </ui>

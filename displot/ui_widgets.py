@@ -174,7 +174,7 @@ class WorkImageView(DisplotGraphicsView):
         self._labelX.setText('x:'+str(m_x))
         self._labelY.setText('y:'+str(m_y))
 
-        psize = self.imageTab._lastPatchSize
+        psize = self.imageTab._patchSize
         bg_pixmap = self.imageTab._imageScenePixmap
         if bg_pixmap == None:
             max_w = None
