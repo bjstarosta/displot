@@ -90,9 +90,11 @@ class WorkImageView(DisplotGraphicsView):
     MODE_NORMAL = 0
     MODE_REGION_NEW = 1
     MODE_REGION_MOVE = 2
+    MODE_REGION_SELECT = 3
 
     clickedRegionNew = QtCore.pyqtSignal(int, int, name='clickedRegionNew')
     clickedRegionMove = QtCore.pyqtSignal(int, int, name='clickedRegionMove')
+    clickedRegionSelect = QtCore.pyqtSignal(int, int, name='clickedRegionSelect')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -100,7 +102,7 @@ class WorkImageView(DisplotGraphicsView):
         self.mouseMode = self.MODE_NORMAL
         self.mouseGraphicsItem = None
         self.zoomLevel = 1
-        self.regionStyle = None
+        self.featureStyle = None
 
         self._labelX = None
         self._labelY = None
@@ -143,6 +145,52 @@ class WorkImageView(DisplotGraphicsView):
         self._labelX = self.imageTab.findChild(QtWidgets.QLabel, "imageCurX")
         self._labelY = self.imageTab.findChild(QtWidgets.QLabel, "imageCurY")
 
+    def drawMarker(self, coords, pen, brush=None, ref=None):
+        """Draws a feature marker on the main view. Returns an object reference.
+
+        Args:
+            coords (tuple): A 2-tuple of ints (x, y) where x and y are
+                the midpoint coordinates of the marker.
+            pen (QtGui.QPen): Pen to use for drawing the object.
+            brush (QtGui.QBrush): Brush to use for drawing the object.
+            ref (object): Reference an existing object to update here,
+                or None to create a new object.
+
+        Returns:
+            QGraphicsItem: Reference to the graphical object.
+
+        """
+        scene = self.scene()
+        x, y = coords
+        w, h = (10, 10)
+
+        if ref is None:
+            ref = QtWidgets.QGraphicsItemGroup()
+
+            hline = QtWidgets.QGraphicsLineItem(0, int(h/2), w, int(h/2))
+            hline.setPen(pen)
+            ref.addToGroup(hline)
+            vline = QtWidgets.QGraphicsLineItem(int(w/2), 0, int(w/2), h)
+            vline.setPen(pen)
+            ref.addToGroup(vline)
+
+            scene.addItem(ref)
+        else:
+            for c in ref.childItems():
+                c.setPen(pen)
+
+        ref.setPos(int(x - w/2), int(y - h/2))
+        return ref
+
+    def destroyMarker(self, ref):
+        """Destroys a feature marker on the minimap.
+
+        Args:
+            ref (object): Reference an existing marker object.
+        """
+        scene = self.scene()
+        scene.removeItem(ref)
+
     def getVisibleRect(self):
         return self.mapToScene(self.viewport().geometry()).boundingRect()
 
@@ -167,6 +215,9 @@ class WorkImageView(DisplotGraphicsView):
             self.clickedRegionMove.emit(m_x, m_y)
             self.setMouseMode(self.MODE_NORMAL)
 
+        if self.mouseMode == self.MODE_REGION_SELECT:
+            self.clickedRegionSelect.emit(m_x, m_y)
+
     def mouseMoveEvent(self, e):
         m_x, m_y = self.mouseCoords(e.x(), e.y())
 
@@ -174,7 +225,6 @@ class WorkImageView(DisplotGraphicsView):
         self._labelX.setText('x:'+str(m_x))
         self._labelY.setText('y:'+str(m_y))
 
-        psize = self.imageTab._patchSize
         bg_pixmap = self.imageTab._imageScenePixmap
         if bg_pixmap == None:
             max_w = None
@@ -184,12 +234,18 @@ class WorkImageView(DisplotGraphicsView):
             max_h = bg_pixmap.boundingRect().height()
 
         if self.mouseMode == self.MODE_REGION_NEW:
-            self._regionNewHandle = self.drawOverlayRect(self._regionNewHandle,
-                m_x, m_y, psize, psize, max_w, max_h, self.regionStyle.newCursorPen)
+            self._regionNewHandle = self.drawMarker(
+                (m_x, m_y),
+                self.featureStyle.newCursorPen, None,
+                self._regionNewHandle
+            )
 
         if self.mouseMode == self.MODE_REGION_MOVE:
-            self._regionMoveHandle = self.drawOverlayRect(self._regionMoveHandle,
-                m_x, m_y, psize, psize, max_w, max_h, self.regionStyle.moveCursorPen)
+            self._regionMoveHandle = self.drawMarker(
+                (m_x, m_y),
+                self.featureStyle.moveCursorPen, None,
+                self._regionMoveHandle
+            )
 
     def resizeEvent(self, e):
         if self.imageTab.opened == True:
@@ -239,6 +295,41 @@ class MinimapView(DisplotGraphicsView):
         was not preserved for some reason then they won't be.
         """
         return self.transform().m11(), self.transform().m22()
+
+    def drawMarker(self, coords, pen, brush=None, ref=None):
+        """Draws a feature marker on the minimap. Returns an object reference.
+
+        Args:
+            coords (tuple): A 4-tuple of ints (x, y, w, h) where x and y are
+                the upper left corner coordinates of the marker and w and h are
+                its desired width and height.
+            pen (QtGui.QPen): Pen to use for drawing the object.
+            brush (QtGui.QBrush): Brush to use for drawing the object.
+            ref (object): Reference an existing object to update here,
+                or None to create a new object.
+
+        Returns:
+            QGraphicsItem: Reference to the graphical object.
+
+        """
+        scene = self.scene()
+        x, y, w, h = coords
+
+        if ref is None:
+            ref = scene.addEllipse(x, y, w, h, pen, brush)
+        else:
+            ref.setRect(x, y, w, h)
+
+        return ref
+
+    def destroyMarker(self, ref):
+        """Destroys a feature marker on the minimap.
+
+        Args:
+            ref (object): Reference an existing marker object.
+        """
+        scene = self.scene()
+        scene.removeItem(ref)
 
     def drawViewbox(self):
         """Draws the rectangle representing the current visible area on the
@@ -321,7 +412,7 @@ class ImageTabList(QtWidgets.QTableView):
         model.dataChanged.connect(lambda: self.modelDataChanged.emit())
         super().setModel(model)
         self.resetView()
-        self.setItemDelegateForColumn(2, ImageTabListFragColour(self, self.imageTab._window.imageTabRegionStyle))
+        self.setItemDelegateForColumn(2, ImageTabListFragColour(self, self.imageTab._window.imageTabFeatureStyle))
         self.setItemDelegateForColumn(3, ImageTabListFragVisibility(self))
         self.setItemDelegateForColumn(4, ImageTabListCheckBox(self))
 
@@ -349,7 +440,7 @@ class ImageTabList(QtWidgets.QTableView):
     def selectionChanged(self, selected, deselected):
         if not self._imageTab is None:
             self._imageTab._cntrFragBtn
-            self._imageTab.unhighlightAllFragments()
+            self._imageTab.unhighlightAllFeatures()
             sel = self.selectedItems()
             if not sel is None:
                 if self._imageTab._cntrFragBtn.isChecked() == True:
@@ -369,11 +460,11 @@ class ImageTabList(QtWidgets.QTableView):
 class ImageTabListFragColour(QtWidgets.QItemDelegate):
 
     def __init__(self, parent, style, *args, **kwargs):
-        self._regionStyle = style
+        self._featureStyle = style
         self._colorIcons = []
         self._cb = None
 
-        for pen in self._regionStyle.userPens:
+        for pen in self._featureStyle.userPens:
             pixmap = QtGui.QPixmap(12, 12)
             pixmap.fill(pen.color())
             self._colorIcons.append(QtGui.QIcon(pixmap))
@@ -384,7 +475,7 @@ class ImageTabListFragColour(QtWidgets.QItemDelegate):
         painter.save()
 
         #pen = index.data(QtCore.Qt.DecorationRole)
-        pen = self._regionStyle.userPens[index.data(QtCore.Qt.DisplayRole)]
+        pen = self._featureStyle.userPens[index.data(QtCore.Qt.DisplayRole)]
         pixmap = QtGui.QPixmap(option.rect.width(), option.rect.height())
         pixmap.fill(pen.color())
         painter.drawPixmap(option.rect.x(), option.rect.y(), pixmap)
@@ -410,7 +501,7 @@ class ImageTabListFragColour(QtWidgets.QItemDelegate):
             return super().setEditorData(editor, index)
 
         currentPen = index.data(QtCore.Qt.DecorationRole)
-        #boxIndex = self._regionStyle.userPens.index(currentPen)
+        #boxIndex = self._featureStyle.userPens.index(currentPen)
         boxIndex = index.data(QtCore.Qt.DisplayRole)
         if boxIndex >= 0:
             editor.setCurrentIndex(boxIndex)
@@ -419,7 +510,7 @@ class ImageTabListFragColour(QtWidgets.QItemDelegate):
         if editor == None:
             return super().setEditorData(editor, model, index)
 
-        newPen = self._regionStyle.userPens[editor.currentIndex()]
+        newPen = self._featureStyle.userPens[editor.currentIndex()]
         model.setData(index, newPen, QtCore.Qt.DecorationRole)
         model.setData(index, editor.currentIndex(), QtCore.Qt.EditRole)
 

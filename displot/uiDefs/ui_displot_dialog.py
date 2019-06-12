@@ -2,11 +2,12 @@
 
 # Form implementation generated from reading ui file './displot_dialog.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.12.2
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_DialogBox(object):
     def setupUi(self, DialogBox):
@@ -33,4 +34,5 @@ class Ui_DialogBox(object):
         _translate = QtCore.QCoreApplication.translate
         DialogBox.setWindowTitle(_translate("DialogBox", "Dialog"))
         self.dialogText.setText(_translate("DialogBox", "TextLabel"))
+
 

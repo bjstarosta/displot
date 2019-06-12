@@ -152,6 +152,13 @@
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="button_ClusterDetect">
+             <property name="text">
+              <string>Detect clusters</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QScrollArea" name="imageToolsScroll">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -185,8 +192,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>256</width>
-                <height>322</height>
+                <width>241</width>
+                <height>392</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -195,8 +202,22 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <layout class="QFormLayout" name="formLayout_2">
+              <layout class="QFormLayout" name="formLayout">
                <item row="0" column="0" colspan="2">
+                <widget class="QComboBox" name="value_ScanMethod">
+                 <item>
+                  <property name="text">
+                   <string>Method: Wavelet Detail Analysis</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Method: Background Separation</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="1" column="0" colspan="2">
                 <widget class="QLabel" name="label_step1">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
@@ -211,188 +232,75 @@
                   <enum>QFrame::Raised</enum>
                  </property>
                  <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Step 1:&lt;/span&gt; Feature selection&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Settings:&lt;/span&gt; Feature selection&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                 </widget>
                </item>
-               <item row="7" column="0">
-                <widget class="QLabel" name="label_MinFeatureArea">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_FGMedian">
                  <property name="text">
-                  <string>Minimum feature area</string>
-                 </property>
-                 <property name="wordWrap">
-                  <bool>true</bool>
+                  <string>Foreground median blur</string>
                  </property>
                  <property name="buddy">
-                  <cstring>value_MinFeatureArea</cstring>
+                  <cstring>value_FGMedian</cstring>
                  </property>
                 </widget>
                </item>
-               <item row="7" column="1">
-                <widget class="QSpinBox" name="value_MinFeatureArea">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
+               <item row="2" column="1">
+                <widget class="QSpinBox" name="value_FGMedian">
+                 <property name="minimum">
+                  <number>1</number>
                  </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>75</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="focusPolicy">
-                  <enum>Qt::ClickFocus</enum>
-                 </property>
-                 <property name="suffix">
-                  <string>px</string>
-                 </property>
-                 <property name="maximum">
-                  <number>1000</number>
+                 <property name="singleStep">
+                  <number>2</number>
                  </property>
                  <property name="value">
-                  <number>15</number>
-                 </property>
-                 <property name="displayIntegerBase">
-                  <number>10</number>
+                  <number>3</number>
                  </property>
                 </widget>
                </item>
-               <item row="8" column="0">
-                <widget class="QLabel" name="label_MaxBboxOverlap">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
+               <item row="3" column="0">
+                <widget class="QLabel" name="label_BGMedian">
                  <property name="text">
-                  <string>Maximum bounding box overlap</string>
-                 </property>
-                 <property name="wordWrap">
-                  <bool>true</bool>
+                  <string>Background median blur</string>
                  </property>
                  <property name="buddy">
-                  <cstring>value_MaxBboxOverlap</cstring>
+                  <cstring>value_BGMedian</cstring>
                  </property>
                 </widget>
                </item>
-               <item row="8" column="1">
-                <widget class="QSpinBox" name="value_MaxBboxOverlap">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
+               <item row="3" column="1">
+                <widget class="QSpinBox" name="value_BGMedian">
+                 <property name="minimum">
+                  <number>1</number>
                  </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>75</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="focusPolicy">
-                  <enum>Qt::ClickFocus</enum>
-                 </property>
-                 <property name="suffix">
-                  <string>%</string>
-                 </property>
-                 <property name="maximum">
-                  <number>100</number>
+                 <property name="singleStep">
+                  <number>2</number>
                  </property>
                  <property name="value">
-                  <number>33</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="6" column="0" colspan="2">
-                <widget class="QLabel" name="label_step2">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="frameShape">
-                  <enum>QFrame::Panel</enum>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Raised</enum>
-                 </property>
-                 <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Step 2:&lt;/span&gt; Discrimination&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <number>21</number>
                  </property>
                 </widget>
                </item>
                <item row="4" column="0">
-                <widget class="QLabel" name="label_CannySigma">
-                 <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Canny threshold sigma&lt;br/&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;(increase for more edges)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="wordWrap">
-                  <bool>true</bool>
-                 </property>
-                 <property name="buddy">
-                  <cstring>value_CannySigma</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="4" column="1">
-                <widget class="QDoubleSpinBox" name="value_CannySigma">
-                 <property name="maximum">
-                  <double>100.000000000000000</double>
-                 </property>
-                 <property name="singleStep">
-                  <double>0.100000000000000</double>
-                 </property>
-                 <property name="value">
-                  <double>0.330000000000000</double>
-                 </property>
-                </widget>
-               </item>
-               <item row="9" column="0">
-                <widget class="QLabel" name="label_MaxOverlap">
-                 <property name="text">
-                  <string>Maximum pixelwise overlap</string>
-                 </property>
-                 <property name="wordWrap">
-                  <bool>true</bool>
-                 </property>
-                 <property name="buddy">
-                  <cstring>value_MaxOverlap</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="9" column="1">
-                <widget class="QSpinBox" name="value_MaxOverlap">
-                 <property name="suffix">
-                  <string>%</string>
-                 </property>
-                 <property name="maximum">
-                  <number>100</number>
-                 </property>
-                 <property name="value">
-                  <number>75</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="5" column="0">
                 <widget class="QLabel" name="label_DetailSkew">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
                  </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>50</height>
+                  </size>
+                 </property>
                  <property name="text">
                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Detail level skew&lt;br/&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;(larger % = less small details)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="scaledContents">
+                  <bool>false</bool>
                  </property>
                  <property name="wordWrap">
                   <bool>true</bool>
@@ -402,7 +310,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="5" column="1">
+               <item row="4" column="1">
                 <widget class="QDoubleSpinBox" name="value_DetailSkew">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -412,7 +320,7 @@
                  </property>
                  <property name="minimumSize">
                   <size>
-                   <width>75</width>
+                   <width>0</width>
                    <height>0</height>
                   </size>
                  </property>
@@ -442,51 +350,176 @@
                  </property>
                 </widget>
                </item>
-               <item row="2" column="0">
-                <widget class="QLabel" name="label_FGMedian">
+               <item row="5" column="0" colspan="2">
+                <widget class="QLabel" name="label_step2">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::Panel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
                  <property name="text">
-                  <string>Foreground median blur</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Settings:&lt;/span&gt; Discrimination&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="0">
+                <widget class="QLabel" name="label_MinFeatureArea">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>Minimum feature area</string>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
                  </property>
                  <property name="buddy">
-                  <cstring>value_FGMedian</cstring>
+                  <cstring>value_MinFeatureArea</cstring>
                  </property>
                 </widget>
                </item>
-               <item row="3" column="0">
-                <widget class="QLabel" name="label_BGMedian">
+               <item row="6" column="1">
+                <widget class="QSpinBox" name="value_MinFeatureArea">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="focusPolicy">
+                  <enum>Qt::ClickFocus</enum>
+                 </property>
+                 <property name="suffix">
+                  <string>px</string>
+                 </property>
+                 <property name="maximum">
+                  <number>1000</number>
+                 </property>
+                 <property name="value">
+                  <number>15</number>
+                 </property>
+                 <property name="displayIntegerBase">
+                  <number>10</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="0">
+                <widget class="QLabel" name="label_MaxBboxOverlap">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
                  <property name="text">
-                  <string>Background median blur</string>
+                  <string>Maximum bounding box overlap</string>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
                  </property>
                  <property name="buddy">
-                  <cstring>value_BGMedian</cstring>
+                  <cstring>value_MaxBboxOverlap</cstring>
                  </property>
                 </widget>
                </item>
-               <item row="2" column="1">
-                <widget class="QSpinBox" name="value_FGMedian">
-                 <property name="minimum">
-                  <number>1</number>
+               <item row="7" column="1">
+                <widget class="QSpinBox" name="value_MaxBboxOverlap">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
                  </property>
-                 <property name="singleStep">
-                  <number>2</number>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="focusPolicy">
+                  <enum>Qt::ClickFocus</enum>
+                 </property>
+                 <property name="suffix">
+                  <string>%</string>
+                 </property>
+                 <property name="maximum">
+                  <number>100</number>
                  </property>
                  <property name="value">
-                  <number>3</number>
+                  <number>33</number>
                  </property>
                 </widget>
                </item>
-               <item row="3" column="1">
-                <widget class="QSpinBox" name="value_BGMedian">
-                 <property name="minimum">
-                  <number>1</number>
+               <item row="8" column="0">
+                <widget class="QLabel" name="label_MaxOverlap">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>35</height>
+                  </size>
                  </property>
-                 <property name="singleStep">
-                  <number>2</number>
+                 <property name="text">
+                  <string>Maximum pixelwise overlap</string>
                  </property>
-                 <property name="value">
-                  <number>21</number>
+                 <property name="wordWrap">
+                  <bool>true</bool>
+                 </property>
+                 <property name="buddy">
+                  <cstring>value_MaxOverlap</cstring>
                  </property>
                 </widget>
+               </item>
+               <item row="8" column="1">
+                <widget class="QSpinBox" name="value_MaxOverlap">
+                 <property name="suffix">
+                  <string>%</string>
+                 </property>
+                 <property name="maximum">
+                  <number>100</number>
+                 </property>
+                 <property name="value">
+                  <number>75</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="0" colspan="2">
+                <widget class="QLabel" name="label_step3">
+                 <property name="frameShape">
+                  <enum>QFrame::Panel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <property name="text">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Settings:&lt;/span&gt; Cluster detection&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="0">
+                <widget class="QLabel" name="label_Centroids">
+                 <property name="text">
+                  <string>Expected clusters</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="1">
+                <widget class="QSpinBox" name="value_Centroids"/>
                </item>
               </layout>
              </widget>
@@ -534,14 +567,14 @@
              <property name="sortingEnabled">
               <bool>true</bool>
              </property>
+             <attribute name="horizontalHeaderMinimumSectionSize">
+              <number>20</number>
+             </attribute>
              <attribute name="horizontalHeaderDefaultSectionSize">
               <number>70</number>
              </attribute>
              <attribute name="horizontalHeaderHighlightSections">
               <bool>false</bool>
-             </attribute>
-             <attribute name="horizontalHeaderMinimumSectionSize">
-              <number>20</number>
              </attribute>
              <attribute name="horizontalHeaderStretchLastSection">
               <bool>false</bool>
@@ -552,10 +585,10 @@
              <attribute name="verticalHeaderCascadingSectionResizes">
               <bool>false</bool>
              </attribute>
-             <attribute name="verticalHeaderDefaultSectionSize">
-              <number>1</number>
-             </attribute>
              <attribute name="verticalHeaderMinimumSectionSize">
+              <number>20</number>
+             </attribute>
+             <attribute name="verticalHeaderDefaultSectionSize">
               <number>20</number>
              </attribute>
              <attribute name="verticalHeaderStretchLastSection">

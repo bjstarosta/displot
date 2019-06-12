@@ -2,11 +2,12 @@
 
 # Form implementation generated from reading ui file './displot_about.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.12.2
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_AboutDialog(object):
     def setupUi(self, AboutDialog):
@@ -48,4 +49,5 @@ class Ui_AboutDialog(object):
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'sans-serif\';\">Created by {author} (</span><a href=\"mailto:{author_email}\"><span style=\" font-family:\'sans-serif\'; text-decoration: underline; color:#0000ff;\">{author_email}</span></a><span style=\" font-family:\'sans-serif\';\">)</span></p>\n"
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"{project_page}\"><span style=\" text-decoration: underline; color:#0000ff;\">Project page</span></a></p></body></html>"))
         self.closeButton.setText(_translate("AboutDialog", "Close"))
+
 

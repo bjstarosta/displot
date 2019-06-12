@@ -2,7 +2,7 @@
 from PyQt5 import QtCore
 
 
-class RegionModel(QtCore.QAbstractTableModel):
+class FeatureModel(QtCore.QAbstractTableModel):
     """Data model for the dislocation list.
 
     Used to prepare and display data within the QTableView it is attached to.
@@ -37,8 +37,11 @@ class RegionModel(QtCore.QAbstractTableModel):
         self.modelIndices = list(map(str, range(1, len(self.modelData) + 1)))
         self.endResetModel()
 
+    def getDataList(self):
+        return self.modelData
+
     def getDataObject(self, row):
-        """Returns the ImageTabRegion object corresponding to the specified row.
+        """Returns the ImageTabFeature object corresponding to the specified row.
 
         Args:
             row (int): Number of the row in the table.
@@ -56,7 +59,7 @@ class RegionModel(QtCore.QAbstractTableModel):
         object.
 
         Args:
-            obj (:obj:`ImageTabRegion`): ImageTabRegion object to compare.
+            obj (:obj:`ImageTabFeature`): ImageTabRegion object to compare.
 
         Returns:
             int: An integer describing the row offset.
@@ -68,11 +71,11 @@ class RegionModel(QtCore.QAbstractTableModel):
             return None
 
     def getCheckedDataObjects(self):
-        """Returns all of the ImageTabRegion data objects that have their
+        """Returns all of the ImageTabFeature data objects that have their
         checkbox marked by the user.
 
         Returns:
-            list: A list of ImageTabRegion objects.
+            list: A list of ImageTabFeature objects.
 
         """
         ret = []
@@ -83,14 +86,14 @@ class RegionModel(QtCore.QAbstractTableModel):
         return ret
 
     def addDataObject(self, obj):
-        """Adds an ImageTabRegion objects to the addition queue for the table view.
+        """Adds an ImageTabFeature objects to the addition queue for the table view.
 
         Note: Nothing will be added until the insertRows method is called
         specifying the exact offset in the table view to which these objects
         should be added as new rows.
 
         Args:
-            obj (:obj:`ImageTabRegion`): ImageTabRegion object to add.
+            obj (:obj:`ImageTabFeature`): ImageTabFeature object to add.
 
         """
         self._addQueue.append(obj)
@@ -127,9 +130,9 @@ class RegionModel(QtCore.QAbstractTableModel):
 
         if role == QtCore.Qt.DisplayRole:
             if index.column() == 0:
-                return QtCore.QVariant(self.modelData[index.row()].midpoint[0])
+                return QtCore.QVariant(int(self.modelData[index.row()].x))
             if index.column() == 1:
-                return QtCore.QVariant(self.modelData[index.row()].midpoint[1])
+                return QtCore.QVariant(int(self.modelData[index.row()].y))
             if index.column() == 2:
                 return QtCore.QVariant(self.modelData[index.row()].cluster_id)
 
@@ -163,13 +166,13 @@ class RegionModel(QtCore.QAbstractTableModel):
                     return False
 
             if index.column() == 0:
-                self.modelData[index.row()].moveMidpoint(x=value)
-                self.modelData[index.row()].updateUiPos()
+                self.modelData[index.row()].x = value
             if index.column() == 1:
-                self.modelData[index.row()].moveMidpoint(y=value)
-                self.modelData[index.row()].updateUiPos()
+                self.modelData[index.row()].y = value
             if index.column() == 2:
                 self.modelData[index.row()].cluster_id = value
+
+            self.modelData[index.row()].update()
 
         if role == QtCore.Qt.DecorationRole:
             if index.column() == 2:
@@ -183,9 +186,9 @@ class RegionModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.CheckStateRole:
             if index.column() == 4:
                 if value == QtCore.Qt.Checked:
-                    self.modelData[index.row()].isSelected = True
+                    self.modelData[index.row()].select(True)
                 else:
-                    self.modelData[index.row()].isSelected = False
+                    self.modelData[index.row()].select(False)
 
         self.dataChanged.emit(index, index, [role])
         return super().setData(index, value, role)
