@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+from time import localtime, strftime
 from PyQt5 import QtCore, QtGui, QtWidgets
+
+from displot.ui_defs import feathericons_rc
 
 
 class DisplotGraphicsView(QtWidgets.QGraphicsView):
@@ -13,66 +16,6 @@ class DisplotGraphicsView(QtWidgets.QGraphicsView):
         if not isinstance(obj, QtWidgets.QWidget):
             raise TypeError('Value needs to be an instance of QtWidgets.QWidget')
         self._imageTab = obj
-
-    def drawOverlayRect(self, handle, x, y, w, h, scene_w=None, scene_h=None,
-    pen=None):
-        """Draws a rectangle with the specified properties onto the scene
-        currently attached to the QGraphicsView.
-
-        This function ensures that the drawn rectangle will never be out of
-        existing bounds of the graphics scene, and therefore will never resize
-        the graphics scene unnecessarily. The function instead draws the
-        rectangle at the nearest valid coordinates.
-
-        Args:
-            handle (QGraphicsRectItem): The rectangle Qt handle. If set to None,
-                the function will create and return a new Qt handle for the
-                rectangle.
-            x (int): X coordinate of the top-left origin of the rectangle.
-            y (int): Y coordinate of the top-left origin of the rectangle.
-            w (int): Desired width of the rectangle.
-            h (int): Desired height of the rectangle.
-            scene_w (int): Desired width of the scene. If set to None, the
-                function will check the current scene size automatically.
-            scene_h (int): Desired height of the scene. If set to None, the
-                function will check the current scene size automatically.
-            pen (QPen): The pen used to draw the rectangle.
-
-        Returns:
-            QGraphicsRectItem: The rectangle graphical handle.
-        """
-
-        scene = self.scene()
-
-        if scene_w == None:
-            scene_w = scene.width()
-        if scene_h == None:
-            scene_h = scene.height()
-
-        # check and set drawing bounds to avoid stretching the scene
-        if (x + w) > scene_w:
-            x = scene_w - w
-        if (y + h) > scene_h:
-            y = scene_h - h
-        if x < 0:
-            x = 0
-        if y < 0:
-            y = 0
-        if w > scene_w:
-            w = scene_w
-        if h > scene_h:
-            h = scene_h
-
-        # this is to avoid annoying 1px stretches at the w/h boundary
-        w -= 1
-        h -= 1
-
-        if handle == None:
-            handle = scene.addRect(x, y, w, h, pen);
-        else:
-            handle.setRect(x, y, w, h)
-
-        return handle
 
 
 class WorkImageView(DisplotGraphicsView):
@@ -88,13 +31,20 @@ class WorkImageView(DisplotGraphicsView):
     """
 
     MODE_NORMAL = 0
-    MODE_REGION_NEW = 1
-    MODE_REGION_MOVE = 2
-    MODE_REGION_SELECT = 3
+    MODE_FEATURE_NEW = 1
+    MODE_FEATURE_MOVE = 2
+    MODE_FEATURE_SELECT = 3
+    MODE_EXCLUDE_NEW = 4
+    MODE_EXCLUDE_DRAW = 5
+    MODE_EXCLUDE_MOVE = 6
+    MODE_EXCLUDE_RESIZE = 7
 
-    clickedRegionNew = QtCore.pyqtSignal(int, int, name='clickedRegionNew')
-    clickedRegionMove = QtCore.pyqtSignal(int, int, name='clickedRegionMove')
-    clickedRegionSelect = QtCore.pyqtSignal(int, int, name='clickedRegionSelect')
+    clickedFeatureNew = QtCore.pyqtSignal(int, int, name='clickedFeatureNew')
+    clickedFeatureMove = QtCore.pyqtSignal(int, int, name='clickedFeatureMove')
+    clickedFeatureSelect = QtCore.pyqtSignal(int, int, name='clickedFeatureSelect')
+    mousePressExclude = QtCore.pyqtSignal(int, int, name='mousePressExclude')
+    mouseReleaseExclude = QtCore.pyqtSignal(int, int, name='mouseReleaseExclude')
+    selectionChangeExclude = QtCore.pyqtSignal(object, name='selectionChangeExclude')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -107,6 +57,12 @@ class WorkImageView(DisplotGraphicsView):
         self._labelX = None
         self._labelY = None
 
+        self._selboxHandle = None
+        self._selboxPen = QtGui.QPen(QtGui.QColor.fromRgb(0,255,0))
+        self._selboxBrush = QtGui.QBrush(QtGui.QColor.fromRgb(0,255,0,10))
+        self._selboxOrigin = None
+        self._selOrigin = None
+        self._selCurrent = None
         self._regionNewHandle = None
         self._regionMoveHandle = None
 
@@ -191,6 +147,27 @@ class WorkImageView(DisplotGraphicsView):
         scene = self.scene()
         scene.removeItem(ref)
 
+    def drawSelectionBox(self, x1, y1, x2, y2):
+        sx = min(x1, x2)
+        sy = min(y1, y2)
+        ex = max(x1, x2)
+        ey = max(y1, y2)
+        w = ex - sx
+        h = ey - sy
+
+        scene = self.scene()
+        if self._selboxHandle == None:
+            self._selboxHandle = scene.addRect(sx, sy, w, h, self._selboxPen, self._selboxBrush);
+        else:
+            self._selboxHandle.setRect(sx, sy, w, h)
+
+    def destroySelectionBox(self):
+        if self._selboxHandle is not None:
+            scene = self.scene()
+            scene.removeItem(self._selboxHandle)
+        self._selboxHandle = None
+        self._selboxOrigin = None
+
     def getVisibleRect(self):
         return self.mapToScene(self.viewport().geometry()).boundingRect()
 
@@ -207,16 +184,71 @@ class WorkImageView(DisplotGraphicsView):
     def mousePressEvent(self, e):
         m_x, m_y = self.mouseCoords(e.x(), e.y())
 
-        if self.mouseMode == self.MODE_REGION_NEW:
-            self.clickedRegionNew.emit(m_x, m_y)
+        if self.mouseMode == self.MODE_FEATURE_NEW:
+            self.clickedFeatureNew.emit(m_x, m_y)
             self.setMouseMode(self.MODE_NORMAL)
 
-        if self.mouseMode == self.MODE_REGION_MOVE:
-            self.clickedRegionMove.emit(m_x, m_y)
+        if self.mouseMode == self.MODE_FEATURE_MOVE:
+            self.clickedFeatureMove.emit(m_x, m_y)
             self.setMouseMode(self.MODE_NORMAL)
 
-        if self.mouseMode == self.MODE_REGION_SELECT:
-            self.clickedRegionSelect.emit(m_x, m_y)
+        if self.mouseMode == self.MODE_FEATURE_SELECT:
+            self.clickedFeatureSelect.emit(m_x, m_y)
+
+        if self.mouseMode == self.MODE_EXCLUDE_NEW:
+            selection = None
+            for i in self.imageTab.exclusions:
+                if selection is None and i.overlap_point(m_x, m_y) == True:
+                    selection = i
+                else:
+                    i.setSelected(False)
+
+            if selection == None:
+                self._selboxOrigin = (m_x, m_y)
+                self.setMouseMode(self.MODE_EXCLUDE_DRAW)
+                self.selectionChangeExclude.emit(None)
+            else:
+                if selection.is_selected() == False:
+                    selection.setSelected(True)
+                    self.selectionChangeExclude.emit(selection)
+                    return
+
+                self._selCurrent = selection
+
+                if selection.overlap_resizebox(m_x, m_y) == True:
+                    self._selOrigin = (selection.x2 - m_x, selection.y2 - m_y)
+                    self.setMouseMode(self.MODE_EXCLUDE_RESIZE)
+                else:
+                    self._selOrigin = (m_x - selection.x1, m_y - selection.y1)
+                    self.setMouseMode(self.MODE_EXCLUDE_MOVE)
+
+            self.mousePressExclude.emit(m_x, m_y)
+
+    def mouseReleaseEvent(self, e):
+        m_x, m_y = self.mouseCoords(e.x(), e.y())
+
+        if self.mouseMode == self.MODE_EXCLUDE_DRAW:
+            self.mouseReleaseExclude.emit(m_x, m_y)
+
+            if self._selboxHandle is not None:
+                area = ImageExclusionArea(self._selboxOrigin[0], self._selboxOrigin[1], m_x, m_y, self._imageTab.image)
+                if area.is_valid() == True:
+                    self.imageTab.exclusions.append(area)
+                    scene = self.scene()
+                    scene.addItem(area)
+
+            self.destroySelectionBox()
+            self.setMouseMode(self.MODE_EXCLUDE_NEW)
+
+        if self.mouseMode == self.MODE_EXCLUDE_MOVE:
+            self._selOrigin = None
+            self._selCurrent = None
+            self.setMouseMode(self.MODE_EXCLUDE_NEW)
+
+        if self.mouseMode == self.MODE_EXCLUDE_RESIZE:
+            self._selOrigin = None
+            self._selCurrent = None
+            self.setMouseMode(self.MODE_EXCLUDE_NEW)
 
     def mouseMoveEvent(self, e):
         m_x, m_y = self.mouseCoords(e.x(), e.y())
@@ -233,18 +265,35 @@ class WorkImageView(DisplotGraphicsView):
             max_w = bg_pixmap.boundingRect().width()
             max_h = bg_pixmap.boundingRect().height()
 
-        if self.mouseMode == self.MODE_REGION_NEW:
+        if self.mouseMode == self.MODE_FEATURE_NEW:
             self._regionNewHandle = self.drawMarker(
                 (m_x, m_y),
                 self.featureStyle.newCursorPen, None,
                 self._regionNewHandle
             )
 
-        if self.mouseMode == self.MODE_REGION_MOVE:
+        if self.mouseMode == self.MODE_FEATURE_MOVE:
             self._regionMoveHandle = self.drawMarker(
                 (m_x, m_y),
                 self.featureStyle.moveCursorPen, None,
                 self._regionMoveHandle
+            )
+
+        if self.mouseMode == self.MODE_EXCLUDE_DRAW:
+            self.drawSelectionBox(
+                self._selboxOrigin[0], self._selboxOrigin[1], m_x, m_y
+            )
+
+        if self.mouseMode == self.MODE_EXCLUDE_MOVE:
+            self._selCurrent.move(
+                m_x - self._selOrigin[0],
+                m_y - self._selOrigin[1]
+            )
+
+        if self.mouseMode == self.MODE_EXCLUDE_RESIZE:
+            self._selCurrent.resize(
+                m_x + self._selOrigin[0],
+                m_y + self._selOrigin[1]
             )
 
     def resizeEvent(self, e):
@@ -340,15 +389,32 @@ class MinimapView(DisplotGraphicsView):
         bg_pixmap = self.imageTab._minimapScenePixmap.boundingRect()
 
         ratio = self.getMinimapRatio()
-        max_w = bg_pixmap.width() * ratio
-        max_h = bg_pixmap.height() * ratio
+        max_w = (bg_pixmap.width() * ratio) - 1
+        max_h = (bg_pixmap.height() * ratio) - 1
         box_w = viewport_box.width() * ratio
         box_h = viewport_box.height() * ratio
         box_x = viewport_box.x() * ratio
         box_y = viewport_box.y() * ratio
 
-        self._mmBox = self.drawOverlayRect(self._mmBox,
-            box_x, box_y, box_w, box_h, max_w, max_h, self._mmPen)
+        # check and set drawing bounds to avoid stretching the scene
+        if (box_x + box_w) > max_w:
+            box_x = max_w - box_w
+        if (box_y + box_h) > max_h:
+            box_y = max_h - box_h
+        if box_x < 0:
+            box_x = 0
+        if box_y < 0:
+            box_y = 0
+        if box_w > max_w:
+            box_w = max_w
+        if box_h > max_h:
+            box_h = max_h
+
+        scene = self.scene()
+        if self._mmBox == None:
+            self._mmBox = scene.addRect(box_x, box_y, box_w, box_h, self._mmPen);
+        else:
+            self._mmBox.setRect(box_x, box_y, box_w, box_h)
 
     def _drawViewboxEv(self, e):
         """Method to handle minimap mouse events before centering the viewport
@@ -385,6 +451,169 @@ class MinimapView(DisplotGraphicsView):
     def mouseMoveEvent(self, e):
         if e.buttons() & QtCore.Qt.LeftButton:
             self._drawViewboxEv(e)
+
+
+class ImageExclusionArea(QtWidgets.QGraphicsItem):
+
+    def __init__(self, x1, y1, x2, y2, image):
+        if x1 < 0 or x2 < 0 or y1 < 0 or y2 < 0:
+            raise ValueError('Argument values cannot be negative ('+str([x1, y1, x2, y2])+')')
+
+        self.x1 = min(x1, x2)
+        self.y1 = min(y1, y2)
+        self.x2 = max(x1, x2)
+        self.y2 = max(y1, y2)
+
+        self.resizeBoxOffset = 12
+
+        self._selected = False
+        self._image = image
+
+        super().__init__()
+
+        #self.setPanelModality(QtWidgets.QGraphicsItem.SceneModal)
+        #self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)
+        self._set_brect()
+
+    @property
+    def width(self):
+        return self.x2 - self.x1
+
+    @width.setter
+    def width(self, w):
+        if w < int(self.resizeBoxOffset * 1.5):
+            w = int(self.resizeBoxOffset * 1.5)
+        self.x2 = self.x1 + w
+
+    @property
+    def height(self):
+        return self.y2 - self.y1
+
+    @height.setter
+    def height(self, h):
+        if h < int(self.resizeBoxOffset * 1.5):
+            h = int(self.resizeBoxOffset * 1.5)
+        self.y2 = self.y1 + h
+
+    @property
+    def area(self):
+        return self.width * self.height
+
+    def move(self, x1, y1):
+        if x1 < 0:
+            self.x2 = self.width
+            self.x1 = 0
+        elif x1 > (self._image.width - self.width):
+            self.x2 = self._image.width
+            self.x1 = self._image.width - self.width
+        else:
+            self.x2 = x1 + self.width
+            self.x1 = x1
+
+        if y1 < 0:
+            self.y2 = self.height
+            self.y1 = 0
+        elif y1 > (self._image.height - self.height):
+            self.y2 = self._image.height
+            self.y1 = self._image.height - self.height
+        else:
+            self.y2 = y1 + self.height
+            self.y1 = y1
+
+        self._set_brect()
+
+    def resize(self, x2, y2):
+        if (x2 - self.x1) < int(self.resizeBoxOffset * 1.5):
+            self.x2 = self.x1 + int(self.resizeBoxOffset * 1.5)
+        elif x2 >= self._image.width:
+            self.x2 = self._image.width
+        else:
+            self.x2 = x2
+
+        if (y2 - self.y1) < int(self.resizeBoxOffset * 1.5):
+            self.y2 = self.y1 + int(self.resizeBoxOffset * 1.5)
+        elif y2 >= self._image.height:
+            self.y2 = self._image.height
+        else:
+            self.y2 = y2
+
+        self._set_brect()
+
+    def overlap_point(self, x, y):
+        if (x >= self.x1 and x <= self.x2) and (y >= self.y1 and y <= self.y2):
+            return True
+        else:
+            return False
+
+    def overlap_rect(self, x1, y1, x2, y2):
+        ix1 = max(x1, self.x1)
+        iy1 = max(y1, self.y1)
+        ix2 = min(x2, self.x2)
+        iy2 = min(y2, self.y2)
+        intr = (ix1 - ix2, iy1 - iy2)
+        if intr[0] < 1 or intr[1] < 1:
+            return False
+        else:
+            return True
+
+    def overlap_resizebox(self, x, y):
+        c = (self.x2 - self.resizeBoxOffset, self.y2 - self.resizeBoxOffset, self.x2, self.y2)
+        if (x >= c[0] and x <= c[2]) and (y >= c[1] and y <= c[3]):
+            return True
+        else:
+            return False
+
+    def _set_brect(self):
+        self.prepareGeometryChange()
+        self._brect = QtCore.QRectF(self.x1, self.y1, self.width, self.height)
+
+    def is_selected(self):
+        return self._selected
+
+    def is_valid(self):
+        return self.width >= self.resizeBoxOffset and self.height >= self.resizeBoxOffset
+
+    # Qt5 overrides
+    def setSelected(self, enable=True):
+        self._selected = enable
+        super().setSelected(enable)
+        self.update()
+
+    def boundingRect(self):
+        return self._brect
+
+    def paint(self, painter, option, widget):
+        rect = self.boundingRect()
+
+        pen_nrm = QtGui.QPen(QtGui.QColor.fromRgb(255,25,25))
+        pen_sel = QtGui.QPen(QtGui.QColor.fromRgb(255,155,25))
+        brush_nrm = QtGui.QBrush(QtGui.QColor.fromRgb(255,25,25,20))
+        brush_sel = QtGui.QBrush(QtGui.QColor.fromRgb(255,155,25,20))
+        pen_resizeBox = QtGui.QPen(QtGui.QColor.fromRgb(255,155,25))
+        brush_resizeBox = QtGui.QBrush(QtGui.QColor.fromRgb(255,155,25))
+        icon_resizeBox = QtGui.QPixmap(":/feathericons/vendor/feather/icons/crop.svg")
+        rect_resizeBox = QtCore.QRect(
+            self.x2 - self.resizeBoxOffset,
+            self.y2 - self.resizeBoxOffset,
+            self.resizeBoxOffset,
+            self.resizeBoxOffset
+        )
+
+        if self._selected == True:
+            painter.setPen(pen_sel)
+            painter.setBrush(brush_sel)
+            painter.drawRect(rect)
+
+            painter.setPen(pen_resizeBox)
+            painter.setBrush(brush_resizeBox)
+            painter.drawRect(rect_resizeBox)
+            painter.drawPixmap(rect_resizeBox, icon_resizeBox)
+        else:
+            painter.setPen(pen_nrm)
+            painter.setBrush(brush_nrm)
+            painter.drawRect(rect)
+
+        self.setZValue(1000)
 
 
 class ImageTabList(QtWidgets.QTableView):
@@ -602,3 +831,46 @@ class ImageTabListCheckBox(QtWidgets.QItemDelegate):
             return model.setData(index, state, QtCore.Qt.CheckStateRole)
         else:
             return False
+
+
+class Console(QtWidgets.QFrame):
+
+    _HTMLBEGIN = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\
+        <html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\
+        p, li \{ white-space: pre-wrap; \}\
+        </style></head><body style=\"font-family:'Roboto'; font-size:10pt; font-weight:400; font-style:normal;\">"
+    _HTMLEND = "</body></html>"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._toggleButton = None
+        self._textBox = None
+        self._lines = []
+
+    def initUi(self):
+        self._toggleButton = self.findChild(QtWidgets.QPushButton, "consoleTitleLabel")
+        self._textBox = self.findChild(QtWidgets.QTextEdit, "consoleTextBox")
+
+        self._toggleButton.clicked.connect(self.toggle)
+        self._textBox.hide()
+
+    def toggle(self):
+        if self._textBox.isVisible() == True:
+            self._textBox.hide()
+        else:
+            self._textBox.show()
+
+    def add_line(self, filename, text):
+        self._lines.append((strftime("%Y-%m-%d %H:%M:%S", localtime()), filename, text))
+        self.update()
+
+    def update(self):
+        html = self._HTMLBEGIN
+        for l in self._lines:
+            html += "<b>["+l[0]+"]</b> (<i>"+l[1]+"</i>) "+l[2]+"<br>"
+        html += self._HTMLEND
+        self._textBox.setHtml(html)
+
+        vscroll = self._textBox.verticalScrollBar()
+        vscroll.setValue(vscroll.maximum())

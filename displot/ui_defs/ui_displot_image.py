@@ -2,9 +2,10 @@
 
 # Form implementation generated from reading ui file './displot_image.ui'
 #
-# Created by: PyQt5 UI code generator 5.12.2
+# Created by: PyQt5 UI code generator 5.13.0
 #
 # WARNING! All changes made in this file will be lost!
+
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -464,7 +465,5 @@ class Ui_ImageTabPrototype(object):
         self.imageCurY.setText(_translate("ImageTabPrototype", "y:0"))
         self.label_zoom.setText(_translate("ImageTabPrototype", "Zoom:"))
         self.zoomDial.setSuffix(_translate("ImageTabPrototype", "%"))
-
-
 from displot.ui_widgets import ImageTabList, MinimapView, WorkImageView
 from . import feathericons_rc
