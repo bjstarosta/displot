@@ -30,7 +30,7 @@ def check_releases(info):
 
     """
 
-    check_url = 'https://raw.githubusercontent.com/bjstarosta/displot/master/displot/displot.py'
+    check_url = 'https://raw.githubusercontent.com/bjstarosta/displot/master/displot/config.py'
 
     try:
         ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
