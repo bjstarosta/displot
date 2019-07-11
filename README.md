@@ -11,7 +11,9 @@ These instructions will get you a copy of the project up and running on your loc
 * Python 3
 * Numpy + Scipy + Matplotlib
 * Scikit-image
+* OpenCV
 * PyQt5
+* PyWavelets
 
 ### Installing
 
