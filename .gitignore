@@ -4,4 +4,6 @@ devel/feather
 *.pyc
 *.tif
 *.TIF
+*.csv
+*.tar.gz
 *~
