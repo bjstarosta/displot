@@ -26,6 +26,8 @@ class DisplotUi(QtWidgets.QMainWindow):
             for the QMainWindow generated from the .ui files in the /devel/ directory.
         imageTabs (list): List of ImageTab objects holding the currently opened
             images.
+        imageTabFeatureStyle (:obj:`ImageTabFeatureStyle`): Style object containing
+            marker pens and brushes.
         tabWidget (:obj:`QTabWidget`): Reference to the QTabWidget holding the
             opened images.
         appTitle (str): Application title as shown at the top of the window.
@@ -84,13 +86,13 @@ class DisplotUi(QtWidgets.QMainWindow):
 
         self.layout.actionAbout.triggered.connect(self.openAbout)
 
-        self.layout.actionHideAllObjects.toggled.connect(self.imageTabToggleFeatures)
+        self.layout.actionHideAllObjects.toggled.connect(self._imageTabToggleFeatures)
         self.layout.actionHideAllObjects.setEnabled(False)
-        self.layout.actionSelectObject.toggled.connect(self.imageTabSelectFeatures)
+        self.layout.actionSelectObject.toggled.connect(self._imageTabSelectFeatures)
         self.layout.actionSelectObject.setEnabled(False)
-        self.layout.actionExcludeArea.toggled.connect(self.imageTabExcludeArea)
+        self.layout.actionExcludeArea.toggled.connect(self._imageTabExcludeArea)
         self.layout.actionExcludeArea.setEnabled(False)
-        self.layout.actionRemoveExclusion.triggered.connect(self.imageTabRemoveExclusion)
+        self.layout.actionRemoveExclusion.triggered.connect(self._imageTabRemoveExclusion)
         self.layout.actionRemoveExclusion.setEnabled(False)
 
     def run(self):
@@ -129,7 +131,7 @@ class DisplotUi(QtWidgets.QMainWindow):
 
         self.statusBar().showMessage(message, timeout)
 
-    def refreshMenus(self, exclusion_obj=None):
+    def refreshMenus(self, selected_obj=None):
         """Makes sure menu item actions will effect the correct tab.
         """
 
@@ -165,7 +167,7 @@ class DisplotUi(QtWidgets.QMainWindow):
         else:
             self.layout.actionExcludeArea.setChecked(False)
 
-        if type(exclusion_obj).__name__ == "ImageExclusionArea":
+        if type(selected_obj).__name__ == "ImageExclusionArea":
             self.layout.actionRemoveExclusion.setEnabled(True)
         else:
             self.layout.actionRemoveExclusion.setEnabled(False)
@@ -392,14 +394,16 @@ class DisplotUi(QtWidgets.QMainWindow):
 
         return self.imageTabFind(self.tabWidget.currentIndex())
 
-    def imageTabToggleFeatures(self, toggle=True):
+    def _imageTabToggleFeatures(self, toggle=True):
+        """Event method."""
         curtab = self.tabWidget.currentWidget()
         if toggle == True:
             curtab.hideAllFeatures()
         else:
             curtab.showAllFeatures()
 
-    def imageTabSelectFeatures(self, toggle=True):
+    def _imageTabSelectFeatures(self, toggle=True):
+        """Event method."""
         curtab = self.tabWidget.currentWidget()
         if toggle == True:
             self.imageTabExcludeArea(False)
@@ -408,7 +412,8 @@ class DisplotUi(QtWidgets.QMainWindow):
             curtab._imageView.setMouseMode(WorkImageView.MODE_NORMAL)
         self.layout.actionSelectObject.setChecked(toggle)
 
-    def imageTabExcludeArea(self, toggle=True):
+    def _imageTabExcludeArea(self, toggle=True):
+        """Event method."""
         curtab = self.tabWidget.currentWidget()
         if toggle == True:
             self.imageTabSelectFeatures(False)
@@ -418,7 +423,8 @@ class DisplotUi(QtWidgets.QMainWindow):
             pass
         self.layout.actionExcludeArea.setChecked(toggle)
 
-    def imageTabRemoveExclusion(self):
+    def _imageTabRemoveExclusion(self):
+        """Event method."""
         curtab = self.tabWidget.currentWidget()
         sel = None
         for i in curtab.exclusions:
@@ -626,6 +632,7 @@ class ImageTab(QtWidgets.QWidget):
         self._tabWidget.removeTab(self.widgetIndex)
 
     def prepareImageData(self):
+        """Creates and returns a populated ImageData object for saving."""
         data = imageutils.ImageData(DISPLOT_INFO)
         data.image = self.image
         data.features = self.model.getDataList()
@@ -633,6 +640,8 @@ class ImageTab(QtWidgets.QWidget):
         return data
 
     def loadImageData(self, data):
+        """Loads properties from an ImageData object into self, e.g. after reading
+        a frozen ImageData object."""
         if data.metadata['dataVersion'] != DISPLOT_INFO['dataVersion']:
             raise ValueError('Passed data object is of a different version than this release of displot supports.')
 
@@ -728,12 +737,6 @@ class ImageTab(QtWidgets.QWidget):
         # Exclude features covered by exclusion areas
         self.image.features.list = imageutils.exclude_features(self.image.features.list, self.exclusions)
 
-        # TODO: Cluster analysis
-        """self._window.setStatusBarMsg(
-            'Analysing clusters...')
-
-        self.image.regions = imageutils.cluster_analysis(self.image.regions, int(centroids.cleanText()))"""
-
         msg = 'Done. {} dislocation candidates found.'.format(len(self.image.features.list))
         self._window.setStatusBarMsg(msg)
         self._window.console.add_line(self.image.file_name, msg)
@@ -754,8 +757,14 @@ class ImageTab(QtWidgets.QWidget):
 
     def scanClusters(self):
         pass
+        # TODO: Cluster analysis
+        """self._window.setStatusBarMsg(
+            'Analysing clusters...')
+
+        self.image.regions = imageutils.cluster_analysis(self.image.regions, int(centroids.cleanText()))"""
 
     def changeScanMethod(self, index):
+        """Event method."""
         disable = [
             self.findChild(QtWidgets.QDoubleSpinBox, "value_DetailSkew")
         ]
@@ -768,6 +777,7 @@ class ImageTab(QtWidgets.QWidget):
                 el.setEnabled(False)
 
     def clearAllFeatures(self):
+        """Permanently removes all features from the model and graphical scene."""
         for frag in self.model.modelData:
             frag.removeFromScene()
         self.model.setDataList([])
@@ -793,6 +803,8 @@ class ImageTab(QtWidgets.QWidget):
             frag.hide()
 
     def selectFeature(self, x, y):
+        """Event method. Fires when mouse is clicked on the WorkImageView and
+        selection mouse mode is activated."""
         coords = QtCore.QRectF(x - 2, y - 2, 4, 4)
         items = [x for x in self._imageScene.items(coords) if type(x) == QtWidgets.QGraphicsItemGroup]
 
@@ -806,6 +818,8 @@ class ImageTab(QtWidgets.QWidget):
                 self.model.notifyDataChanged(row)
 
     def addNewFeature(self, x, y):
+        """Event method. Fires when mouse is clicked on the WorkImageView and
+        add new feature mouse mode is activated."""
         frag = ImageTabFeature()
         frag.x = x
         frag.y = y
@@ -833,6 +847,8 @@ class ImageTab(QtWidgets.QWidget):
         self._imageView.setMouseMode(WorkImageView.MODE_FEATURE_MOVE)
 
     def moveFeature(self, x, y, frag=None):
+        """Event method. Fires when mouse is clicked on the WorkImageView and
+        add new feature mouse mode is activated."""
         if frag == None:
             frag = self._movingFragment
             self._movingFragment = None

@@ -124,13 +124,13 @@ p, li { white-space: pre-wrap; }
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>16</height>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>16</height>
+           <height>20</height>
           </size>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout">
@@ -155,7 +155,7 @@ p, li { white-space: pre-wrap; }
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Console</string>
+             <string>Console Log</string>
             </property>
            </widget>
           </item>
@@ -352,10 +352,10 @@ p, li { white-space: pre-wrap; }
      <normaloff>:/feathericons/vendor/feather/icons/navigation-2.svg</normaloff>:/feathericons/vendor/feather/icons/navigation-2.svg</iconset>
    </property>
    <property name="text">
-    <string>Select Object</string>
+    <string>Select Feature</string>
    </property>
    <property name="toolTip">
-    <string>Object selection tool.</string>
+    <string>Feature selection tool.</string>
    </property>
   </action>
   <action name="actionHideAllObjects">
@@ -368,7 +368,7 @@ p, li { white-space: pre-wrap; }
      <normalon>:/feathericons/vendor/feather/icons/eye-off.svg</normalon>:/feathericons/vendor/feather/icons/eye.svg</iconset>
    </property>
    <property name="text">
-    <string>Hide All Objects</string>
+    <string>Hide All Features</string>
    </property>
    <property name="toolTip">
     <string>Toggle hiding all feature objects.</string>

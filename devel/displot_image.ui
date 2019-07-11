@@ -152,13 +152,6 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="button_ClusterDetect">
-             <property name="text">
-              <string>Detect clusters</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QScrollArea" name="imageToolsScroll">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -192,8 +185,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>241</width>
-                <height>392</height>
+                <width>255</width>
+                <height>333</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -498,29 +491,6 @@
                  </property>
                 </widget>
                </item>
-               <item row="9" column="0" colspan="2">
-                <widget class="QLabel" name="label_step3">
-                 <property name="frameShape">
-                  <enum>QFrame::Panel</enum>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Raised</enum>
-                 </property>
-                 <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Settings:&lt;/span&gt; Cluster detection&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="10" column="0">
-                <widget class="QLabel" name="label_Centroids">
-                 <property name="text">
-                  <string>Expected clusters</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="10" column="1">
-                <widget class="QSpinBox" name="value_Centroids"/>
-               </item>
               </layout>
              </widget>
             </widget>
@@ -529,7 +499,7 @@
          </widget>
          <widget class="QWidget" name="labelledItems">
           <attribute name="title">
-           <string>Fragments</string>
+           <string>Features</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <property name="leftMargin">
