@@ -17,10 +17,6 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Installing
 
-#### On Windows (no command line):
-
-Download and use the newest self-contained binary provided [here](https://github.com/bjstarosta/displot/releases).
-
 #### Non-OS specific (using python from command line):
 
 First ensure that you have Python 3 installed on your PC. For Windows, you can get it from [here](https://www.python.org/downloads/windows/). For GNU/Linux based OS use your favourite package manager to download it.
