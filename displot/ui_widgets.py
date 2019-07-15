@@ -92,7 +92,7 @@ class WorkImageView(DisplotGraphicsView):
 
     def mouseCoords(self, x, y):
         rect = self.getVisibleRect()
-        return (int(rect.x()+x), int(rect.y()+y))
+        return (int(rect.x()+(x/self.zoomLevel)), int(rect.y()+(y/self.zoomLevel)))
 
     def initEvents(self):
         """Initialises some UI events. Run this after the image has been loaded."""

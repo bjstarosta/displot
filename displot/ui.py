@@ -406,7 +406,7 @@ class DisplotUi(QtWidgets.QMainWindow):
         """Event method."""
         curtab = self.tabWidget.currentWidget()
         if toggle == True:
-            self.imageTabExcludeArea(False)
+            self._imageTabExcludeArea(False)
             curtab._imageView.setMouseMode(WorkImageView.MODE_FEATURE_SELECT)
         else:
             curtab._imageView.setMouseMode(WorkImageView.MODE_NORMAL)
@@ -416,7 +416,7 @@ class DisplotUi(QtWidgets.QMainWindow):
         """Event method."""
         curtab = self.tabWidget.currentWidget()
         if toggle == True:
-            self.imageTabSelectFeatures(False)
+            self._imageTabSelectFeatures(False)
             curtab._imageView.setMouseMode(WorkImageView.MODE_EXCLUDE_NEW)
         else:
             curtab._imageView.setMouseMode(WorkImageView.MODE_NORMAL)
