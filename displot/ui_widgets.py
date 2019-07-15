@@ -173,6 +173,8 @@ class WorkImageView(DisplotGraphicsView):
 
     def zoom(self, scale):
         """Zooms the scene according to the passed scale multiplier (float)."""
+        # First the scale must be reset to the original, then the new scale level
+        # put into place.
         self.scale(1 / self.zoomLevel, 1 / self.zoomLevel)
         self.scale(scale, scale)
         self.zoomLevel = scale

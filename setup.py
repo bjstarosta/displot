@@ -37,7 +37,9 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
-        'scikit-image'
+        'scikit-image',
+        'opencv-python',
+        'PyWavelets'
     ],
     cmdclass={
         'install': displotInstall,
