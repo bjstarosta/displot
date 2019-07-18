@@ -151,7 +151,7 @@ class DisplotUi(QtWidgets.QMainWindow):
         for m in imageMenus:
             m.setEnabled(enable)
 
-        if it._imageView.mouseMode == WorkImageView.MODE_FEATURE_SELECT:
+        if isinstance(it, ImageTab) and it._imageView.mouseMode == WorkImageView.MODE_FEATURE_SELECT:
             self.layout.actionSelectObject.setChecked(True)
         else:
             self.layout.actionSelectObject.setChecked(False)
@@ -162,12 +162,12 @@ class DisplotUi(QtWidgets.QMainWindow):
             WorkImageView.MODE_EXCLUDE_MOVE,
             WorkImageView.MODE_EXCLUDE_RESIZE
         ]
-        if it._imageView.mouseMode in exclusion_mousemodes:
+        if isinstance(it, ImageTab) and it._imageView.mouseMode in exclusion_mousemodes:
             self.layout.actionExcludeArea.setChecked(True)
         else:
             self.layout.actionExcludeArea.setChecked(False)
 
-        if type(selected_obj).__name__ == "ImageExclusionArea":
+        if isinstance(it, ImageTab) and type(selected_obj).__name__ == "ImageExclusionArea":
             self.layout.actionRemoveExclusion.setEnabled(True)
         else:
             self.layout.actionRemoveExclusion.setEnabled(False)
@@ -729,8 +729,8 @@ class ImageTab(QtWidgets.QWidget):
         try:
             self.image.features.run()
         except Exception as e:
-            self._window.setStatusBarMsg('Error: ' + e.error())
-            print(e)
+            self._window.setStatusBarMsg('Error: ' + str(e))
+            self._window.console.add_line(self.image.file_name, 'Scan interrupted. Error: ' + str(e))
             self._imageScanBtn.setEnabled(True)
             return
 
@@ -881,12 +881,12 @@ class ImageTab(QtWidgets.QWidget):
             imageData: numpy ndarray of the image.
         """
         h, w = imageData.shape
-
         # Load data directly from the numpy array into QImage
-        result = QtGui.QImage(imageData.data, w, h, QtGui.QImage.Format_Indexed8)
+        result = QtGui.QImage(imageData.data, w, h, w, QtGui.QImage.Format_Indexed8)
         result.ndarray = imageData
 
         # Set up the monochrome colour palette
+        result.setColorCount(256)
         for i in range(256):
             result.setColor(i, QtGui.qRgb(i, i, i))
 
