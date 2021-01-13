@@ -54,7 +54,7 @@ see the tags on this repository.
 
 ## Acknowledgments
 
-* [Feather open source icon pack](tps://github.com/feathericons/feather)
+* [Feather open source icon pack](https://github.com/feathericons/feather)
 
 ## Contact
 
