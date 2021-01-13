@@ -1,87 +1,66 @@
-# Displot
+# displot
 
-Structural dislocation detector.
+Displot is a pre-trained machine learning driven semiconductor surface analysis
+program. It allows for automated detection of threading dislocations on images
+of surfaces obtained using ECCI. The underlying neural network is based on the
+[FusionNet][fusionnet] architecture.
 
-## Getting Started
+## Install
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+This program is built using [Python 3.7][python]. If you are going to run it
+from a GNU/Linux based OS, you will likely already have it installed. If you
+are going to run it from a Windows based machine, you might need to download
+the relevant Python distribution first.
 
-### Prerequisites
+First clone the repository using git:
 
-* Python 3
-* Numpy + Scipy + Matplotlib
-* Scikit-image
-* OpenCV
-* PyQt5
-* PyWavelets
+    $ git clone https://github.com/bjstarosta/displot
 
-### Installing
+Or manually download and unpack the source code into a directory within
+Python's PATH.
 
-#### Non-OS specific (using python from command line):
+The required environment can be reproduced using
+[Anaconda][anaconda]/[Miniconda][miniconda]:
 
-First ensure that you have Python 3 installed on your PC. For Windows, you can get it from [here](https://www.python.org/downloads/windows/). For GNU/Linux based OS use your favourite package manager to download it.
+    $ conda create --name displot --file condaenv.txt
 
-After you downloaded Python, either download and extract the zip containing the source code from this page, or install git and clone the repository:
+Alternatively, pip can be used:
 
-```
-$ git clone https://github.com/bjstarosta/displot  
-$ cd displot
-```
+    $ pip install -r requirements.txt
 
-Then install the package and download the dependencies using:
+Be aware that if using pip it may also be necessary to install Qt5 binaries,
+on which this software depends.
 
-```
-$ python setup.py install
-```
+Finally, due to GitHub filesize limits, you will need to separately download
+the latest neural network model (about 225MB) and place it in the
+displot/weights directory. <!-- You will be given an option to do this
+automatically upon program launch. -->
 
-Alternatively, to use the package from within the cloned directory:
+## Usage
 
-```
-$ python setup.py develop
-```
+The user interface can be started by running the following command from the
+software directory:
 
-Using the above commands should automatically download all the required dependencies for you, provided your python installation has pip and setuptools.
-
-Once you have installed the package, it can be launched from the command line using:
-
-```
-$ python -m displot
-```
-
-#### Troubleshooting
-
-While on Windows Python comes with pip preinstalled, on GNU/Linux based OS you might need to download pip first. Most repositories should have it listed as a package however.
-
-While using setup.py you may encounter an error related to some of the dependencies:
-```
-[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1051) -- Some packages may not be found!
-```
-Running the following command fixes this issue:
-```
-$ python -m pip install certifi
-```
-After this you should run the setup.py script again, and this time the dependency installation should proceed without issues.
-
-## Built With
-
-* [Python 3](https://www.python.org/)
-* [Qt 5](http://doc.qt.io/qt-5/qt5-intro.html) - Using the [PyQt5](https://pypi.org/project/PyQt5/) bindings
-* [Qt Designer](http://doc.qt.io/qt-5/qtdesigner-manual.html) - Recommended for editing layouts
-* [Feather open source icon pack](tps://github.com/feathericons/feather)
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags).
-
-## Authors
-
-* **Bohdan Starosta** - [bjstarosta](https://github.com/bjstarosta)
+    $ python -m displot
 
 ## License
 
-This project is licensed under the GNU GPLv3 License - see the [LICENSE](LICENSE) file for details.
+Distributed under the GNU GPLv3 License. See `LICENSE` for more information.
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available,
+see the tags on this repository.
 
 ## Acknowledgments
 
-* Simon Kraeusel for his original SADC work which inspired this piece of software
-* Ben Hourahine for useful discussions and support
+* [Feather open source icon pack](tps://github.com/feathericons/feather)
+
+## Contact
+
+- E-mail: bohdan.starosta@strath.ac.uk
+
+[fusionnet]: https://arxiv.org/abs/1612.05360
+[python]: https://www.python.org/downloads/release/python-379/
+[anaconda]: https://www.anaconda.com/
+[miniconda]: https://docs.conda.io/en/latest/miniconda.html

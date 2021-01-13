@@ -74,11 +74,7 @@
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:24pt; font-weight:600;&quot;&gt;Displot&lt;/span&gt;&lt;span style=&quot; font-weight:296;&quot;&gt; &lt;/span&gt;&lt;span style=&quot; font-size:14pt; font-weight:296;&quot;&gt;- &lt;/span&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;GaN Dislocation Counter&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans'; font-size:12pt;&quot;&gt;Repository address: &lt;/span&gt;&lt;a href=&quot;https://github.com/bjstarosta/displot&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans'; font-size:12pt; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/bjstarosta/displot&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans'; font-size:9pt;&quot;&gt;Use the &amp;quot;File&amp;quot; menu to load images into the program. Only 8-bit greyscale TIF images are supported, support for more may be added based on need. The dislocation detection method is currently crude, but should improve in further releases as we put together datasets for training a machine learning algorithm. For now, expect to have to heavily help it along by marking dislocations that have been missed and unmarking false positives - the UI is designed to be as helpful with regards to that as possible. If you want to discuss anything about this program further, email me at &lt;/span&gt;&lt;a href=&quot;mailto:bohdan.starosta@strath.ac.uk&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans'; font-size:9pt; text-decoration: underline; color:#0000ff;&quot;&gt;bohdan.starosta@strath.ac.uk&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'Noto Sans'; font-size:9pt;&quot;&gt; or use the GitHub issue tracker.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;This is a first release version, there may be bugs. If a new version is released, expect a dialog nagging you to upgrade.&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Please submit feature requests and report any bugs to: &lt;/span&gt;&lt;a href=&quot;https://github.com/bjstarosta/displot/issues&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/bjstarosta/displot/issues&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="openExternalLinks">
            <bool>true</bool>
@@ -227,6 +223,8 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionOpenImage"/>
     <addaction name="separator"/>
     <addaction name="actionSaveImageAs"/>
+    <addaction name="actionExport_Features"/>
+    <addaction name="actionExport_Bitmap"/>
     <addaction name="actionCloseImage"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -245,7 +243,7 @@ p, li { white-space: pre-wrap; }
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QToolBar" name="toolBar">
+  <widget class="Toolbar" name="toolBar">
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
@@ -267,11 +265,10 @@ p, li { white-space: pre-wrap; }
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionSelectObject"/>
-   <addaction name="actionHideAllObjects"/>
+   <addaction name="actionSelectFeature"/>
+   <addaction name="actionAddFeature"/>
+   <addaction name="actionHideAllFeatures"/>
    <addaction name="separator"/>
-   <addaction name="actionExcludeArea"/>
-   <addaction name="actionRemoveExclusion"/>
   </widget>
   <action name="actionAbout">
    <property name="text">
@@ -283,7 +280,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionOpenImage">
    <property name="text">
-    <string>Open Image</string>
+    <string>Open</string>
    </property>
   </action>
   <action name="actionOpen_Sequence">
@@ -304,7 +301,7 @@ p, li { white-space: pre-wrap; }
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Save Image As...</string>
+    <string>Save As...</string>
    </property>
   </action>
   <action name="actionQuick_scan">
@@ -325,16 +322,16 @@ p, li { white-space: pre-wrap; }
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Close Image</string>
+    <string>Close</string>
    </property>
   </action>
-  <action name="actionExcludeArea">
+  <action name="actionAddExclusion">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="feathericons.qrc">
-     <normaloff>:/feathericons/vendor/feather/icons/scissors.svg</normaloff>:/feathericons/vendor/feather/icons/scissors.svg</iconset>
+     <normaloff>:/feathericons/3rdparty/feather/icons/scissors.svg</normaloff>:/feathericons/3rdparty/feather/icons/scissors.svg</iconset>
    </property>
    <property name="text">
     <string>Exclude Area</string>
@@ -343,13 +340,13 @@ p, li { white-space: pre-wrap; }
     <string>Select an area on the image to exclude all search results from.</string>
    </property>
   </action>
-  <action name="actionSelectObject">
+  <action name="actionSelectFeature">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="feathericons.qrc">
-     <normaloff>:/feathericons/vendor/feather/icons/navigation-2.svg</normaloff>:/feathericons/vendor/feather/icons/navigation-2.svg</iconset>
+     <normaloff>:/feathericons/3rdparty/feather/icons/arrow-up-left.svg</normaloff>:/feathericons/3rdparty/feather/icons/arrow-up-left.svg</iconset>
    </property>
    <property name="text">
     <string>Select Feature</string>
@@ -358,26 +355,25 @@ p, li { white-space: pre-wrap; }
     <string>Feature selection tool.</string>
    </property>
   </action>
-  <action name="actionHideAllObjects">
+  <action name="actionHideAllFeatures">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="feathericons.qrc">
-     <normaloff>:/feathericons/vendor/feather/icons/eye.svg</normaloff>
-     <normalon>:/feathericons/vendor/feather/icons/eye-off.svg</normalon>:/feathericons/vendor/feather/icons/eye.svg</iconset>
+     <normaloff>:/feathericons/3rdparty/feather/icons/eye-off.svg</normaloff>:/feathericons/3rdparty/feather/icons/eye-off.svg</iconset>
    </property>
    <property name="text">
-    <string>Hide All Features</string>
+    <string>Hide All</string>
    </property>
    <property name="toolTip">
-    <string>Toggle hiding all feature objects.</string>
+    <string>Toggle visibility of all feature objects.</string>
    </property>
   </action>
   <action name="actionRemoveExclusion">
    <property name="icon">
     <iconset resource="feathericons.qrc">
-     <normaloff>:/feathericons/vendor/feather/icons/trash.svg</normaloff>:/feathericons/vendor/feather/icons/trash.svg</iconset>
+     <normaloff>:/feathericons/3rdparty/feather/icons/trash.svg</normaloff>:/feathericons/3rdparty/feather/icons/trash.svg</iconset>
    </property>
    <property name="text">
     <string>Remove Exclusion</string>
@@ -386,13 +382,43 @@ p, li { white-space: pre-wrap; }
     <string>Click this while an exclusion area is selected to remove it.</string>
    </property>
   </action>
+  <action name="actionAddFeature">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="feathericons.qrc">
+     <normaloff>:/feathericons/3rdparty/feather/icons/plus.svg</normaloff>:/feathericons/3rdparty/feather/icons/plus.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Add Feature</string>
+   </property>
+   <property name="toolTip">
+    <string>Add a new feature marker to the image.</string>
+   </property>
+  </action>
+  <action name="actionExport_Bitmap">
+   <property name="text">
+    <string>Export Bitmap</string>
+   </property>
+  </action>
+  <action name="actionExport_Features">
+   <property name="text">
+    <string>Export Features</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
    <class>Console</class>
    <extends>QFrame</extends>
-   <header>displot/ui_widgets</header>
+   <header>displot/ui/_console</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Toolbar</class>
+   <extends>QToolBar</extends>
+   <header>displot/ui/_toolbar</header>
   </customwidget>
  </customwidgets>
  <resources>

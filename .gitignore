@@ -6,5 +6,7 @@ devel/feather
 *.TIF
 *.csv
 *.tar.gz
+*.dpa
 *.png
+*.h5
 *~

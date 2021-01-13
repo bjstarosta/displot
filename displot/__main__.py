@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 """Displot launcher file.
 
-Note:
-    Displot is written using Python 3 and may not work using Python 2.
-
 Example:
     Run the program by running this file in python from the command line.
 
@@ -12,60 +9,83 @@ Example:
 """
 
 import sys
-import re
-import urllib.request
+import logging
 import ssl
+import json
 import webbrowser
+import urllib.request
 
-from displot.ui import DisplotUi, GenericDialog
-from displot.config import DISPLOT_INFO
+from displot.ui import DisplotUi, GenericDialog, ConsoleHandler
 
 
-def check_releases(info):
-    """Performs a check on the repository to see whether it needs to nag the
-    user to update his release.
+def check_releases():
+    """Perform a version check on the repository.
 
-    Args:
-        info (dict): Program metadata.
-
+    If the repository has a new version on the master branch, a dialog window
+    will be displayed reminding the user to update.
     """
 
-    check_url = 'https://raw.githubusercontent.com/bjstarosta/displot/master/displot/config.py'
+    ch = 'https://raw.githubusercontent.com/bjstarosta/'
+    'displot/master/displot/meta.json'
 
     try:
         ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
-        with urllib.request.urlopen(check_url, context=ssl_context, timeout=3) as handle:
-            contents = str(handle.read())
+        with urllib.request.urlopen(ch, context=ssl_context, timeout=3) as h:
+            meta_remote = str(h.read())
     except urllib.error.URLError as err:
         print("Couldn't check for new version. Error: ({}) {}".format(
             err.code, err.reason))
         return
 
-    repo_test = re.search(r"'appVersion': '([a-zA-Z0-9-_\.]+)',", contents)
-    if repo_test is None:
+    try:
+        meta_remote = json.loads(meta_remote)
+    except json.decoder.JSONDecodeError as err:
+        print("Couldn't load remote meta.json. Error: ({}) {}".format(
+            err.code, err.reason))
+
+    with open('meta.json', 'r', encoding='utf-8') as f:
+        meta_local = json.load(f)
+
+    if meta_remote['app_version'] == meta_local['app_version']:
         return
 
-    ver = repo_test.group(1)
-    if ver == info['appVersion']:
-        return
-
-    msg = 'Version <b>{}</b> is available in the repository. '
-    msg += 'Your version is <b>{}</b>. '
-    msg += 'Click <i>OK</i> to go to the repository page to update your program, '
-    msg += 'or click <i>Cancel</i> to continue using this version for the moment.'
-    msg = msg.format(ver, info['appVersion'])
+    msg = "Version <b>{}</b> is available in the repository. Your version is "
+    + "<b>{}</b>. Click <i>OK</i> to go to the repository page to update your "
+    + "program, or click <i>Cancel</i> to continue using this version for the "
+    + "moment."
+    msg = msg.format(meta_remote['app_version'], meta_local['app_version'])
 
     dlg = GenericDialog()
     dlg.setText(msg)
-    dlg.setAccept(lambda: webbrowser.open(info['projectPage']))
+    dlg.setAccept(lambda: webbrowser.open(meta_local['project_page']))
     dlg.setAccept(sys.exit)
     dlg.show()
     dlg.exec_()
 
+
+def setup_logger(console):
+    logger = logging.getLogger('displot')
+    logger.setLevel(logging.INFO)
+
+    stream = logging.StreamHandler()
+    stream.setLevel(logging.INFO)
+    stream.setFormatter(logging.Formatter(
+        '[%(levelname)s] %(asctime)s - %(message)s'))
+    logger.addHandler(stream)
+
+    console = ConsoleHandler(console)
+    console.setLevel(logging.INFO)
+    console.setFormatter(logging.Formatter(
+        '[%(levelname)s] %(message)s'))
+    logger.addHandler(console)
+
+
 def main():
-    check_releases(DISPLOT_INFO)
-    UI = DisplotUi(DISPLOT_INFO)
+    check_releases()
+    UI = DisplotUi()
+    setup_logger(UI.console)
     UI.run()
+
 
 if __name__ == "__main__":
     main()

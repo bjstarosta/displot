@@ -62,6 +62,24 @@
         <height>400</height>
        </size>
       </property>
+      <property name="verticalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOn</enum>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOn</enum>
+      </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustIgnored</enum>
+      </property>
+      <property name="transformationAnchor">
+       <enum>QGraphicsView::AnchorViewCenter</enum>
+      </property>
+      <property name="resizeAnchor">
+       <enum>QGraphicsView::AnchorViewCenter</enum>
+      </property>
+      <property name="viewportUpdateMode">
+       <enum>QGraphicsView::SmartViewportUpdate</enum>
+      </property>
      </widget>
      <widget class="QWidget" name="sidebar" native="true">
       <property name="sizePolicy">
@@ -126,7 +144,7 @@
            </sizepolicy>
           </property>
           <attribute name="title">
-           <string>Detection</string>
+           <string>TD Position</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <property name="leftMargin">
@@ -144,7 +162,7 @@
            <item>
             <widget class="QPushButton" name="button_Scan">
              <property name="text">
-              <string>Scan image</string>
+              <string>Start prediction</string>
              </property>
              <property name="flat">
               <bool>false</bool>
@@ -185,8 +203,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>255</width>
-                <height>333</height>
+                <width>241</width>
+                <height>524</height>
                </rect>
               </property>
               <property name="sizePolicy">
@@ -195,23 +213,9 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <layout class="QFormLayout" name="formLayout">
-               <item row="0" column="0" colspan="2">
-                <widget class="QComboBox" name="value_ScanMethod">
-                 <item>
-                  <property name="text">
-                   <string>Method: Wavelet Detail Analysis</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Method: Background Separation</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item row="1" column="0" colspan="2">
-                <widget class="QLabel" name="label_step1">
+              <layout class="QVBoxLayout" name="verticalLayout_4">
+               <item>
+                <widget class="QLabel" name="DislocationPredictionLabel">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
                    <horstretch>0</horstretch>
@@ -225,126 +229,268 @@
                   <enum>QFrame::Raised</enum>
                  </property>
                  <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Settings:&lt;/span&gt; Feature selection&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Settings:&lt;/span&gt; Dislocation Prediction&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                 </widget>
                </item>
-               <item row="2" column="0">
-                <widget class="QLabel" name="label_FGMedian">
+               <item>
+                <widget class="QLabel" name="MLModelLabel">
                  <property name="text">
-                  <string>Foreground median blur</string>
+                  <string>Prediction model:</string>
                  </property>
                  <property name="buddy">
-                  <cstring>value_FGMedian</cstring>
+                  <cstring>value_MLModel</cstring>
                  </property>
                 </widget>
                </item>
-               <item row="2" column="1">
-                <widget class="QSpinBox" name="value_FGMedian">
-                 <property name="minimum">
-                  <number>1</number>
-                 </property>
-                 <property name="singleStep">
-                  <number>2</number>
-                 </property>
-                 <property name="value">
-                  <number>3</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="0">
-                <widget class="QLabel" name="label_BGMedian">
-                 <property name="text">
-                  <string>Background median blur</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>value_BGMedian</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="1">
-                <widget class="QSpinBox" name="value_BGMedian">
-                 <property name="minimum">
-                  <number>1</number>
-                 </property>
-                 <property name="singleStep">
-                  <number>2</number>
-                 </property>
-                 <property name="value">
-                  <number>21</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="4" column="0">
-                <widget class="QLabel" name="label_DetailSkew">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Detail level skew&lt;br/&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;(larger % = less small details)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="scaledContents">
-                  <bool>false</bool>
-                 </property>
-                 <property name="wordWrap">
-                  <bool>true</bool>
-                 </property>
-                 <property name="buddy">
-                  <cstring>value_DetailSkew</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="4" column="1">
-                <widget class="QDoubleSpinBox" name="value_DetailSkew">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="focusPolicy">
-                  <enum>Qt::ClickFocus</enum>
-                 </property>
-                 <property name="frame">
-                  <bool>true</bool>
-                 </property>
-                 <property name="prefix">
+               <item>
+                <widget class="QComboBox" name="value_MLModel">
+                 <property name="currentText">
                   <string/>
                  </property>
-                 <property name="suffix">
-                  <string>%</string>
-                 </property>
-                 <property name="decimals">
-                  <number>1</number>
-                 </property>
-                 <property name="maximum">
-                  <double>100.000000000000000</double>
-                 </property>
-                 <property name="singleStep">
-                  <double>0.100000000000000</double>
-                 </property>
-                 <property name="value">
-                  <double>75.000000000000000</double>
+                </widget>
+               </item>
+               <item>
+                <widget class="Line" name="line_MLModel">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
                  </property>
                 </widget>
                </item>
-               <item row="5" column="0" colspan="2">
-                <widget class="QLabel" name="label_step2">
+               <item>
+                <layout class="QFormLayout" name="step1Layout">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="strideHorizontalLabel">
+                   <property name="text">
+                    <string>Stride (horizontal)</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>strideHorizontalSpinBox</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QSpinBox" name="strideHorizontalSpinBox">
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="suffix">
+                    <string>px</string>
+                   </property>
+                   <property name="maximum">
+                    <number>2048</number>
+                   </property>
+                   <property name="value">
+                    <number>256</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="strideVerticalLabel">
+                   <property name="text">
+                    <string>Stride (vertical)</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>strideVerticalSpinBox</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QSpinBox" name="strideVerticalSpinBox">
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="suffix">
+                    <string>px</string>
+                   </property>
+                   <property name="maximum">
+                    <number>2048</number>
+                   </property>
+                   <property name="value">
+                    <number>256</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QLabel" name="BlobDetectionLabel">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::Panel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <property name="text">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Settings:&lt;/span&gt; Blob Detection&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QFormLayout" name="step2Layout">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="minBlobRadiusLabel">
+                   <property name="toolTip">
+                    <string>Minimum blob radius in pixels.</string>
+                   </property>
+                   <property name="text">
+                    <string>Minimum blob radius</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>minBlobRadiusSpinBox</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QSpinBox" name="minBlobRadiusSpinBox">
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="suffix">
+                    <string>px</string>
+                   </property>
+                   <property name="maximum">
+                    <number>1000</number>
+                   </property>
+                   <property name="value">
+                    <number>5</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="maxBlobRadiusLabel">
+                   <property name="toolTip">
+                    <string>Maximum blob radius in pixels.</string>
+                   </property>
+                   <property name="text">
+                    <string>Maximum blob radius</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>maxBlobRadiusSpinBox</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QSpinBox" name="maxBlobRadiusSpinBox">
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="suffix">
+                    <string>px</string>
+                   </property>
+                   <property name="maximum">
+                    <number>1000</number>
+                   </property>
+                   <property name="value">
+                    <number>14</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="minSigmaLabel">
+                   <property name="text">
+                    <string>Min. sigma</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>minSigmaSpinBox</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QSpinBox" name="minSigmaSpinBox">
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="maximum">
+                    <number>1000</number>
+                   </property>
+                   <property name="value">
+                    <number>3</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="0">
+                  <widget class="QLabel" name="maxSigmaLabel">
+                   <property name="text">
+                    <string>Max. sigma</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="1">
+                  <widget class="QSpinBox" name="maxSigmaSpinBox">
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="maximum">
+                    <number>1000</number>
+                   </property>
+                   <property name="value">
+                    <number>15</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="0">
+                  <widget class="QLabel" name="numSigmaLabel">
+                   <property name="text">
+                    <string>Num. sigma</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>numSigmaSpinBox</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="1">
+                  <widget class="QSpinBox" name="numSigmaSpinBox">
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="maximum">
+                    <number>1000</number>
+                   </property>
+                   <property name="value">
+                    <number>15</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="0">
+                  <widget class="QLabel" name="sigmaThresholdLabel">
+                   <property name="text">
+                    <string>Threshold</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>sigmaThresholdDoubleSpinBox</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="1">
+                  <widget class="QDoubleSpinBox" name="sigmaThresholdDoubleSpinBox">
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="decimals">
+                    <number>3</number>
+                   </property>
+                   <property name="maximum">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.010000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>0.100000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QLabel" name="DiscriminationLabel">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
                    <horstretch>0</horstretch>
@@ -362,134 +508,99 @@
                  </property>
                 </widget>
                </item>
-               <item row="6" column="0">
-                <widget class="QLabel" name="label_MinFeatureArea">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="text">
-                  <string>Minimum feature area</string>
-                 </property>
-                 <property name="wordWrap">
-                  <bool>true</bool>
-                 </property>
-                 <property name="buddy">
-                  <cstring>value_MinFeatureArea</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="6" column="1">
-                <widget class="QSpinBox" name="value_MinFeatureArea">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="focusPolicy">
-                  <enum>Qt::ClickFocus</enum>
-                 </property>
-                 <property name="suffix">
-                  <string>px</string>
-                 </property>
-                 <property name="maximum">
-                  <number>1000</number>
-                 </property>
-                 <property name="value">
-                  <number>15</number>
-                 </property>
-                 <property name="displayIntegerBase">
-                  <number>10</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="7" column="0">
-                <widget class="QLabel" name="label_MaxBboxOverlap">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="text">
-                  <string>Maximum bounding box overlap</string>
-                 </property>
-                 <property name="wordWrap">
-                  <bool>true</bool>
-                 </property>
-                 <property name="buddy">
-                  <cstring>value_MaxBboxOverlap</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="7" column="1">
-                <widget class="QSpinBox" name="value_MaxBboxOverlap">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="focusPolicy">
-                  <enum>Qt::ClickFocus</enum>
-                 </property>
-                 <property name="suffix">
-                  <string>%</string>
-                 </property>
-                 <property name="maximum">
-                  <number>100</number>
-                 </property>
-                 <property name="value">
-                  <number>33</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="8" column="0">
-                <widget class="QLabel" name="label_MaxOverlap">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>35</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>Maximum pixelwise overlap</string>
-                 </property>
-                 <property name="wordWrap">
-                  <bool>true</bool>
-                 </property>
-                 <property name="buddy">
-                  <cstring>value_MaxOverlap</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item row="8" column="1">
-                <widget class="QSpinBox" name="value_MaxOverlap">
-                 <property name="suffix">
-                  <string>%</string>
-                 </property>
-                 <property name="maximum">
-                  <number>100</number>
-                 </property>
-                 <property name="value">
-                  <number>75</number>
-                 </property>
-                </widget>
+               <item>
+                <layout class="QFormLayout" name="step3Layout">
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="marginToleranceLabel">
+                   <property name="toolTip">
+                    <string>Prune features within this many pixels of the image border.</string>
+                   </property>
+                   <property name="text">
+                    <string>Margin tolerance</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>marginToleranceSpinBox</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QSpinBox" name="marginToleranceSpinBox">
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="suffix">
+                    <string>px</string>
+                   </property>
+                   <property name="maximum">
+                    <number>1000</number>
+                   </property>
+                   <property name="value">
+                    <number>3</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="overlapToleranceLabel">
+                   <property name="toolTip">
+                    <string>Allow this many pixels of blob overlap.</string>
+                   </property>
+                   <property name="text">
+                    <string>Overlap tolerance</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>overlapToleranceSpinBox</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QSpinBox" name="overlapToleranceSpinBox">
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="suffix">
+                    <string>px</string>
+                   </property>
+                   <property name="maximum">
+                    <number>1000</number>
+                   </property>
+                   <property name="value">
+                    <number>2</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="predictionThresholdLabel">
+                   <property name="toolTip">
+                    <string>Prune features with prediction confidence under this threshold.</string>
+                   </property>
+                   <property name="text">
+                    <string>Prediction threshold</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>predictionThresholdDoubleSpinBox</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QDoubleSpinBox" name="predictionThresholdDoubleSpinBox">
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="decimals">
+                    <number>2</number>
+                   </property>
+                   <property name="maximum">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.010000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>0.330000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
               </layout>
              </widget>
@@ -515,7 +626,7 @@
             <number>3</number>
            </property>
            <item>
-            <widget class="ImageTabList" name="fragmentList">
+            <widget class="ImageTabTable" name="featureList">
              <property name="frameShape">
               <enum>QFrame::Box</enum>
              </property>
@@ -528,41 +639,20 @@
              <property name="autoScroll">
               <bool>true</bool>
              </property>
+             <property name="editTriggers">
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
              <property name="selectionMode">
               <enum>QAbstractItemView::SingleSelection</enum>
              </property>
              <property name="selectionBehavior">
               <enum>QAbstractItemView::SelectRows</enum>
              </property>
-             <property name="sortingEnabled">
-              <bool>true</bool>
-             </property>
              <attribute name="horizontalHeaderMinimumSectionSize">
-              <number>20</number>
-             </attribute>
-             <attribute name="horizontalHeaderDefaultSectionSize">
-              <number>70</number>
-             </attribute>
-             <attribute name="horizontalHeaderHighlightSections">
-              <bool>false</bool>
+              <number>24</number>
              </attribute>
              <attribute name="horizontalHeaderStretchLastSection">
-              <bool>false</bool>
-             </attribute>
-             <attribute name="verticalHeaderVisible">
-              <bool>false</bool>
-             </attribute>
-             <attribute name="verticalHeaderCascadingSectionResizes">
-              <bool>false</bool>
-             </attribute>
-             <attribute name="verticalHeaderMinimumSectionSize">
-              <number>20</number>
-             </attribute>
-             <attribute name="verticalHeaderDefaultSectionSize">
-              <number>20</number>
-             </attribute>
-             <attribute name="verticalHeaderStretchLastSection">
-              <bool>false</bool>
+              <bool>true</bool>
              </attribute>
             </widget>
            </item>
@@ -598,13 +688,33 @@ automatically center on fragments selected on the list.</string>
                 </property>
                 <property name="icon">
                  <iconset resource="feathericons.qrc">
-                  <normaloff>:/feathericons/vendor/feather/icons/map-pin.svg</normaloff>:/feathericons/vendor/feather/icons/map-pin.svg</iconset>
+                  <normaloff>:/feathericons/3rdparty/feather/icons/map-pin.svg</normaloff>:/feathericons/3rdparty/feather/icons/map-pin.svg</iconset>
                 </property>
                 <property name="checkable">
                  <bool>true</bool>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="button_SelectAllFrags">
+                <property name="toolTip">
+                 <string>Toggle selected and unselected features.</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="feathericons.qrc">
+                  <normaloff>:/feathericons/3rdparty/feather/icons/check-square.svg</normaloff>:/feathericons/3rdparty/feather/icons/check-square.svg</iconset>
+                </property>
+                <property name="checkable">
+                 <bool>false</bool>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
                 </property>
                </widget>
               </item>
@@ -643,7 +753,7 @@ automatically center on fragments selected on the list.</string>
                 </property>
                 <property name="icon">
                  <iconset resource="feathericons.qrc">
-                  <normaloff>:/feathericons/vendor/feather/icons/plus-square.svg</normaloff>:/feathericons/vendor/feather/icons/plus-square.svg</iconset>
+                  <normaloff>:/feathericons/3rdparty/feather/icons/plus-square.svg</normaloff>:/feathericons/3rdparty/feather/icons/plus-square.svg</iconset>
                 </property>
                </widget>
               </item>
@@ -664,7 +774,7 @@ Selection is controlled using the checkboxes in the table above.</string>
                 </property>
                 <property name="icon">
                  <iconset resource="feathericons.qrc">
-                  <normaloff>:/feathericons/vendor/feather/icons/minus-square.svg</normaloff>:/feathericons/vendor/feather/icons/minus-square.svg</iconset>
+                  <normaloff>:/feathericons/3rdparty/feather/icons/minus-square.svg</normaloff>:/feathericons/3rdparty/feather/icons/minus-square.svg</iconset>
                 </property>
                </widget>
               </item>
@@ -685,7 +795,7 @@ Selection is controlled by highlighting a row in the table above.</string>
                 </property>
                 <property name="icon">
                  <iconset resource="feathericons.qrc">
-                  <normaloff>:/feathericons/vendor/feather/icons/move.svg</normaloff>:/feathericons/vendor/feather/icons/move.svg</iconset>
+                  <normaloff>:/feathericons/3rdparty/feather/icons/move.svg</normaloff>:/feathericons/3rdparty/feather/icons/move.svg</iconset>
                 </property>
                </widget>
               </item>
@@ -699,20 +809,20 @@ Selection is controlled by highlighting a row in the table above.</string>
        <item>
         <widget class="MinimapView" name="minimap">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>1</horstretch>
            <verstretch>2</verstretch>
           </sizepolicy>
          </property>
          <property name="minimumSize">
           <size>
-           <width>150</width>
+           <width>297</width>
            <height>200</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>300</width>
+           <width>297</width>
            <height>200</height>
           </size>
          </property>
@@ -761,6 +871,55 @@ Selection is controlled by highlighting a row in the table above.</string>
       <property name="bottomMargin">
        <number>0</number>
       </property>
+      <item>
+       <widget class="QFrame" name="imageInfoPBarFrame">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::Box</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Sunken</enum>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <property name="leftMargin">
+          <number>1</number>
+         </property>
+         <property name="topMargin">
+          <number>1</number>
+         </property>
+         <property name="rightMargin">
+          <number>1</number>
+         </property>
+         <property name="bottomMargin">
+          <number>1</number>
+         </property>
+         <item>
+          <widget class="QProgressBar" name="imageInfoPBar">
+           <property name="maximumSize">
+            <size>
+             <width>150</width>
+             <height>1000</height>
+            </size>
+           </property>
+           <property name="value">
+            <number>0</number>
+           </property>
+           <property name="textVisible">
+            <bool>true</bool>
+           </property>
+           <property name="invertedAppearance">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
       <item>
        <widget class="QLabel" name="imageInfoLabel">
         <property name="sizePolicy">
@@ -945,17 +1104,17 @@ Selection is controlled by highlighting a row in the table above.</string>
   <customwidget>
    <class>MinimapView</class>
    <extends>QGraphicsView</extends>
-   <header>displot/ui_widgets</header>
+   <header>displot/ui/_imageview</header>
   </customwidget>
   <customwidget>
    <class>WorkImageView</class>
    <extends>QGraphicsView</extends>
-   <header>displot/ui_widgets</header>
+   <header>displot/ui/_imageview</header>
   </customwidget>
   <customwidget>
-   <class>ImageTabList</class>
+   <class>ImageTabTable</class>
    <extends>QTableView</extends>
-   <header>displot/ui_widgets</header>
+   <header>displot/ui/_imagetab_table</header>
   </customwidget>
  </customwidgets>
  <resources>

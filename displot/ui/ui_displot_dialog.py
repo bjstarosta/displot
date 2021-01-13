@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file './displot_dialog.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.0
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -29,7 +29,7 @@ class Ui_DialogBox(object):
         self.retranslateUi(DialogBox)
         self.buttonBox.accepted.connect(DialogBox.accept)
         self.buttonBox.rejected.connect(DialogBox.reject)
-        QtCore.QMetaObject.connectSlotsByName(DialogBox)
+        #QtCore.QMetaObject.connectSlotsByName(DialogBox)
 
     def retranslateUi(self, DialogBox):
         _translate = QtCore.QCoreApplication.translate
