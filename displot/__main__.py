@@ -8,6 +8,7 @@ Example:
 
 """
 
+import os
 import sys
 import logging
 import ssl
@@ -25,13 +26,13 @@ def check_releases():
     will be displayed reminding the user to update.
     """
 
-    ch = 'https://raw.githubusercontent.com/bjstarosta/'
-    'displot/master/displot/meta.json'
+    ch = 'https://raw.githubusercontent.com/bjstarosta/'\
+        'displot/master/displot/meta.json'
 
     try:
-        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
         with urllib.request.urlopen(ch, context=ssl_context, timeout=3) as h:
-            meta_remote = str(h.read())
+            meta_remote = str(h.read(), 'ascii')
     except urllib.error.URLError as err:
         print("Couldn't check for new version. Error: ({}) {}".format(
             err.code, err.reason))
@@ -40,10 +41,11 @@ def check_releases():
     try:
         meta_remote = json.loads(meta_remote)
     except json.decoder.JSONDecodeError as err:
-        print("Couldn't load remote meta.json. Error: ({}) {}".format(
-            err.code, err.reason))
+        print("Couldn't load remote meta.json. Error: {}".format(err))
 
-    with open('meta.json', 'r', encoding='utf-8') as f:
+    meta_localpath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+        'meta.json')
+    with open(meta_localpath, 'r', encoding='utf-8') as f:
         meta_local = json.load(f)
 
     if meta_remote['app_version'] == meta_local['app_version']:
