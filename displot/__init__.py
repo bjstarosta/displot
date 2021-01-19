@@ -48,6 +48,3 @@ class Displot(object):
         ))
         log.info('Average prediction confidence: {:.3f}.'.format(tds[1]))
         self.data_obj.markers = tds[0]
-
-    def _progress_notifier(self, progress):
-        raise NotImplementedError()

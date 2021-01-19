@@ -13,6 +13,7 @@ from .ui_displot_image import Ui_ImageTabPrototype
 from ._imagetab_table import FeatureVisibility, FeatureCheckBox
 from ._imagetab_tablemodel import ImageTabTableModel
 from ._imagetab_feature import ImageTabFeature
+from ._threading import Worker
 from displot import Displot
 
 log = logging.getLogger('displot')
@@ -442,6 +443,9 @@ class ImageTab(QtWidgets.QWidget, Displot):
     def _detection_ev(self):
         lt = self.layout
 
+        lt.button_Scan.setEnabled(False)
+        self._progressBar(0)
+
         weights = lt.value_MLModel.currentData()
         if weights is None:
             log.error('Could not begin: No model selected for detection. '
@@ -465,7 +469,8 @@ class ImageTab(QtWidgets.QWidget, Displot):
         td_overlap = int(lt.overlapToleranceSpinBox.cleanText())
         pred_tolerance = float(lt.predictionThresholdDoubleSpinBox.cleanText())
 
-        self.detection(
+        worker = Worker(
+            self.detection,
             self.data_obj.image, weights, model='fusionnet', stride=stride,
             min_r=min_r, max_r=max_r,
             min_sigma=min_sigma, max_sigma=max_sigma,
@@ -473,8 +478,15 @@ class ImageTab(QtWidgets.QWidget, Displot):
             td_border=td_border, td_overlap=td_overlap,
             pred_tolerance=pred_tolerance
         )
+        worker.signals.progress.connect(self._progressBar)
+        worker.signals.finished.connect(self.syncFeaturesToUi)
+        worker.signals.finished.connect(
+            lambda: lt.button_Scan.setEnabled(True)
+        )
+        self.window.threadpool.start(worker)
 
-        self.syncFeaturesToUi()
+    def _progressBar(self, progress):
+        self.layout.imageInfoPBar.setValue(progress)
 
 
 def grayscale_to_QImage(image):

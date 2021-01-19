@@ -19,7 +19,8 @@ def detection(
     image, weights, model='fusionnet', stride=(256, 256),
     min_r=5, max_r=14,
     min_sigma=3, max_sigma=15, num_sigma=15, threshold=.1,
-    td_border=3, td_overlap=2, pred_tolerance=0.33
+    td_border=3, td_overlap=2, pred_tolerance=0.33,
+    _qt5signals=None
 ):
     """Perform machine learning assisted detection of dislocations on an image.
 
@@ -54,6 +55,8 @@ def detection(
         tuple: (list of DisplotDataFeature, float: average pred. conf.)
 
     """
+    progress = 0
+
     # Get rid of extraneous dimension.
     if len(image.shape) == 3:
         image = np.squeeze(image)
@@ -100,6 +103,11 @@ def detection(
     X = np.array(X)
     log.debug('X.shape: {0}'.format(X.shape))
 
+    progress += 10
+    if (callable(_qt5signals.progress)
+    and hasattr(_qt5signals.progress, 'emit')):
+        _qt5signals.progress.emit(progress)  # 10%
+
     # Perform predictions
     log.info('Starting prediction.')
     try:
@@ -110,6 +118,11 @@ def detection(
 
     log.info('Prediction complete.')
     log.debug('Y.shape: {0}'.format(Y.shape))
+
+    progress += 30
+    if (callable(_qt5signals.progress)
+    and hasattr(_qt5signals.progress, 'emit')):
+        _qt5signals.progress.emit(progress)  # 40%
 
     # Stitch the predictions into 4 separate blob images.
     # Find blobs as well while iterating over the predictions.
@@ -163,6 +176,7 @@ def detection(
                 blob_r[y_i:y_i + hw[0], x_i:x_i + hw[1]] = Y_
 
         # Blob detection begins here.
+
         # This line is what slows down this loop.
         blobs_log = skimage.feature.blob_log(
             Y_,
@@ -210,6 +224,11 @@ def detection(
             col = 0
             row += 1
 
+        progress += 40 / len(Y)
+        if (callable(_qt5signals.progress)
+        and hasattr(_qt5signals.progress, 'emit')):
+            _qt5signals.progress.emit(progress)  # 80%
+
     log.info('Blob detection complete.')
     log.debug('TDs found initially: {0}'.format(len(tds)))
 
@@ -230,6 +249,11 @@ def detection(
             continue
 
         tds_pruned.append(td)
+
+    progress += 10
+    if (callable(_qt5signals.progress)
+    and hasattr(_qt5signals.progress, 'emit')):
+        _qt5signals.progress.emit(progress)  # 90%
 
     # Second pass for prediction ranking
 
@@ -279,6 +303,11 @@ def detection(
         o.confidence = pred
         tds_final.append(o)
         pred_avg.append(pred)
+
+    progress = 100
+    if (callable(_qt5signals.progress)
+    and hasattr(_qt5signals.progress, 'emit')):
+        _qt5signals.progress.emit(progress)  # 100%
 
     log.info('Discrimination complete.')
     log.debug('TDs after pruning: {0}'.format(len(tds_final)))

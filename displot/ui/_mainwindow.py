@@ -14,7 +14,7 @@ import sys
 import json
 import logging
 import markdown
-from PyQt5 import QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 import displot.io
 import displot.weights
@@ -49,6 +49,7 @@ class DisplotUi(QtWidgets.QMainWindow):
     def __init__(self):
         # Start the application before main window init
         self.app = QtWidgets.QApplication(sys.argv)
+        self.threadpool = QtCore.QThreadPool()
 
         super().__init__()
 

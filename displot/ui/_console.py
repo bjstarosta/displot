@@ -7,13 +7,15 @@ University of Strathclyde Physics Department
 
 import logging
 from time import localtime, strftime
-from PyQt5 import QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 
 class Console(QtWidgets.QFrame):
     """Console widget.
 
     Used for embedding logging output in the UI."""
+
+    displayMsg = QtCore.pyqtSignal(str)
 
     _HTMLBEGIN = '<span style="font-family: monospace;">'
     _HTMLEND = '</span>'
@@ -25,6 +27,8 @@ class Console(QtWidgets.QFrame):
         self._toggleButton = None
         self._textBox = None
         self._lines = []
+
+        self.displayMsg.connect(self.add_line)
 
     def link(self):
         """Instantiate relevant elements and set up events.
@@ -107,7 +111,7 @@ class ConsoleHandler(logging.Handler):
     def emit(self, record):
         try:
             msg = self.format(record)
-            self.console.add_line(msg)
+            self.console.displayMsg.emit(msg)
             self.flush()
         except Exception:
             self.handleError(record)
