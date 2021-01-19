@@ -11,7 +11,7 @@ import os
 from ._io import _load_image, _load_dpfile, _save_dpfile, _save_csv
 
 __all__ = [
-    "DisplotData", "DisplotDataMarker",
+    "DisplotData", "DisplotDataFeature",
     "save_displot_data", "load_displot_data"
 ]
 
