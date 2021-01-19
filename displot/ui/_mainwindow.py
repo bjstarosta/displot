@@ -44,6 +44,7 @@ class DisplotUi(QtWidgets.QMainWindow):
         appTitle (str): Application title as shown on the title bar.
         appVersion (str): Application version as shown on the title bar.
         titleFormat (str): Template for string displayed on the title bar.
+        
     """
 
     def __init__(self):
