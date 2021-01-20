@@ -163,13 +163,16 @@ class WorkImageView(DisplotGraphicsView):
         self.itab.miniView.drawViewbox()
 
     def scrollContentsBy(self, dx, dy):
-        """Overload of Qt method to include signal."""
+        """Override of Qt method to include signal."""
         super().scrollContentsBy(dx, dy)
         self.onScrollContents.emit(dx, dy)
 
     # Qt5 event overrides
 
     def resizeEvent(self, e):
+        # This ensures viewport resizes the scrollarea correctly.
+        self.setSceneRect(QtCore.QRectF())
+
         self.itab.miniView.drawViewbox()
 
     def mouseMoveEvent(self, e):
