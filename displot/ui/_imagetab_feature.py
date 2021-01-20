@@ -195,15 +195,19 @@ class ImageTabFeature(DisplotDataFeature):
             self.miniViewRef = FeatureMarkerMini()
             self.itab.miniView.addGraphicsItem(self.miniViewRef)
 
+        pred_colour = self.itab.window.styles.cmap(self.confidence)
+
         self.imViewRef.setTextValue('{:.3f}'.format(self.confidence))
-        self.imViewRef.penNormal.setColor(self.color)
+        self.imViewRef.penNormal.setColor(pred_colour)
+        # self.imViewRef.penNormal.setColor(self.color)
         self.imViewRef.update()
         self.imViewRef.setPos(
             self.x - self.imViewRef.width / 2,
             self.y - self.imViewRef.height / 2
         )
 
-        self.miniViewRef.penNormal.setColor(self.color)
+        self.miniViewRef.penNormal.setColor(pred_colour)
+        # self.miniViewRef.penNormal.setColor(self.color)
         self.miniViewRef.update()
         scale = self.itab.miniView.getMinimapRatio()
         self.miniViewRef.setPos(

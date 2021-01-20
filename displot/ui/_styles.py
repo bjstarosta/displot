@@ -5,6 +5,7 @@ Author: Bohdan Starosta
 University of Strathclyde Physics Department
 """
 
+import numpy as np
 from PyQt5 import QtGui
 
 
@@ -52,3 +53,23 @@ class GuiStyles(object):
         self.highlightColour = QtGui.QColor(0xFFFFFF)
         self.newFeatureColour = QtGui.QColor(0xF20884)
         self.moveFeatureColour = QtGui.QColor(0x02ABEA)
+
+    def cmap(self, x):
+        rgb = gaussmap(x)
+        return QtGui.QColor.fromRgb(
+            int(rgb[0] * 255),
+            int(rgb[1] * 255),
+            int(rgb[2] * 255)
+        )
+
+
+def gaussmap(x):
+    return (
+        np.clip(_gsn(x * 100, 0.025, 15, 0.9), 0, 1) + 0.1,  # red
+        np.clip(_gsn(x * 100, 0.0275, 60, 0.4) + 0.3, 0, 1),  # green
+        np.clip(_gsn(x * 100, 0.0475, 95, 0.9), 0, 1)  # blue
+    )
+
+
+def _gsn(x, sigma, mu, a):
+    return a * np.exp((-(x - mu)**2) / 2 * (sigma**2))
