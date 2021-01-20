@@ -261,6 +261,7 @@ class MinimapView(DisplotGraphicsView):
         if self._boxobj is None:
             self._boxobj = self.scene.addRect(
                 box_x, box_y, box_w, box_h, self._boxpen)
+            self._boxobj.setZValue(100)
         else:
             self._boxobj.setRect(box_x, box_y, box_w, box_h)
 
