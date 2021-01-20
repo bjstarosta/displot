@@ -291,7 +291,7 @@ def detection(
         pred = np.average([x[3] for x in overlap_list])
 
         # prune all TDs below set prediction tolerance
-        if td[3] < pred_tolerance:
+        if pred < pred_tolerance:
             continue
 
         # if we are here, it means TD looks valid and is added to the
