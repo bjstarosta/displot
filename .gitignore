@@ -10,3 +10,5 @@ _experiments
 *.png
 *.h5
 *~
+
+!screenshot.png

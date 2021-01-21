@@ -1,5 +1,7 @@
 # displot
 
+![Displot GUI screenshot](screenshot.png)
+
 Displot is a pre-trained machine learning driven semiconductor surface analysis
 program. It allows for automated detection of threading dislocations on images
 of surfaces obtained using ECCI. The underlying neural network is based on the
