@@ -22,7 +22,7 @@ Python's PATH.
 The required environment can be reproduced using
 [Anaconda][anaconda]/[Miniconda][miniconda]:
 
-    $ conda create --name displot --file condaenv.txt
+    $ conda create --name displot --file env-linux64.txt
 
 Alternatively, pip can be used:
 
