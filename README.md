@@ -7,12 +7,17 @@ program. It allows for automated detection of threading dislocations on images
 of surfaces obtained using ECCI. The underlying neural network is based on the
 [FusionNet][fusionnet] architecture.
 
+## System requirements
+
+16 GB of RAM or more is recommended to avoid OOM errors. If a GPU is available,
+it should be automatically detected and used during prediction.
+
 ## Install
 
 This program is built using [Python 3.7][python]. If you are going to run it
 from a GNU/Linux based OS, you will likely already have it installed. If you
-are going to run it from a Windows based machine, you might need to download
-the relevant Python distribution first.
+are going to run it from a Windows based machine, it is recommended that you
+download an Anaconda distribution.
 
 First clone the repository using git:
 
@@ -22,21 +27,30 @@ Or manually download and unpack the source code into a directory within
 Python's PATH.
 
 The required environment can be reproduced using
-[Anaconda][anaconda]/[Miniconda][miniconda]:
+[Anaconda][anaconda]/[Miniconda][miniconda]. Depending on whether the OS
+you are installing on is GNU/Linux or Windows based, use the appropriate
+file when creating the environment:
 
     $ conda create --name displot --file env-linux64.txt
+    OR
+    $ conda create --name displot --file env-windows.txt
 
-Alternatively, pip can be used:
+<!--Alternatively, pip can be used:
 
     $ pip install -r requirements.txt
 
 Be aware that if using pip it may also be necessary to install Qt5 binaries,
-on which this software depends.
+on which this software depends.-->
+
+Once the environment is replicated, activate it using:
+
+    $ conda activate displot
 
 Finally, due to GitHub filesize limits, you will need to separately download
 the latest neural network model (about 225MB) and place it in the
-displot/weights directory. <!-- You will be given an option to do this
-automatically upon program launch. -->
+displot/weights directory. This will be available for public download soon.
+<!-- You will be given an option to do this automatically upon program
+launch. -->
 
 ## Usage
 
