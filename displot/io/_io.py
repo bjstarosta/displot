@@ -10,7 +10,7 @@ import io
 import csv
 import json
 import tarfile
-import datetime
+import time
 try:
     import skimage.external.tifffile as tifffile
 except ImportError:
@@ -91,7 +91,7 @@ def _save_dpfile(path, obj):
     objjson_info.size = len(objjson)
     objjson_info.type = tarfile.REGTYPE
     now = datetime.datetime.now()
-    objjson_info.mtime = int(now.strftime("%s"))
+    objjson_info.mtime = int(time.time())
     objjson_info.mode = 0o0755
 
     a = tarfile.open(path, 'w')
