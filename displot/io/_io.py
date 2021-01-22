@@ -90,7 +90,6 @@ def _save_dpfile(path, obj):
     objjson_info = tarfile.TarInfo(name='dp.json')
     objjson_info.size = len(objjson)
     objjson_info.type = tarfile.REGTYPE
-    now = datetime.datetime.now()
     objjson_info.mtime = int(time.time())
     objjson_info.mode = 0o0755
 
