@@ -11,6 +11,7 @@ import csv
 import json
 import tarfile
 import time
+import numpy as np
 try:
     import skimage.external.tifffile as tifffile
 except ImportError:
@@ -44,6 +45,10 @@ def _load_image(path, obj):
             obj.image_meta = {}
             for f in tif.flags:
                 obj.image_meta[f] = getattr(tif, f + '_metadata')
+
+            # strip all channels except the first one
+            if len(obj.image.shape) > 2:
+                obj.image = np.copy(obj.image[:, :, 0])
 
     else:
         raise RuntimeError(path)
