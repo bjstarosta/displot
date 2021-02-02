@@ -182,8 +182,9 @@ class DisplotUi(QtWidgets.QMainWindow):
         dlg.setFileMode(QtWidgets.QFileDialog.ExistingFile)
         # dlg.setFilter(QtCore.QDir.AllEntries | QtCore.QDir.NoDotAndDotDot)
         dlg.setNameFilters([
-            'Displot readable files (*.tif *{0})'.format(displot.io.DP_EXT),
-            'Image files (*.tif)',
+            'Displot readable files (*.tif *.png *{0})'.format(
+                displot.io.DP_EXT),
+            'Image files (*.tif *.png)',
             'Displot data files (*{0})'.format(displot.io.DP_EXT),
             'All files (*)'
         ])

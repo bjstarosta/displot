@@ -11,7 +11,9 @@ import csv
 import json
 import tarfile
 import time
+
 import numpy as np
+import imageio
 try:
     import skimage.external.tifffile as tifffile
 except ImportError:
@@ -46,12 +48,15 @@ def _load_image(path, obj):
             for f in tif.flags:
                 obj.image_meta[f] = getattr(tif, f + '_metadata')
 
-            # strip all channels except the first one
-            if len(obj.image.shape) > 2:
-                obj.image = np.copy(obj.image[:, :, 0])
+    elif ext == '.png':
+        obj.image = imageio.imread(path)
 
     else:
         raise RuntimeError(path)
+
+    # strip all channels except the first one
+    if len(obj.image.shape) > 2:
+        obj.image = np.copy(obj.image[:, :, 0])
 
     return obj
 
