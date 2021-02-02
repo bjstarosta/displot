@@ -65,27 +65,33 @@ def check_releases():
     dlg.exec_()
 
 
-def setup_logger(console):
+def setup_logger(console, level=logging.INFO):
     logger = logging.getLogger('displot')
-    logger.setLevel(logging.INFO)
+    logger.setLevel(level)
 
     stream = logging.StreamHandler()
-    stream.setLevel(logging.INFO)
+    stream.setLevel(level)
     stream.setFormatter(logging.Formatter(
         '[%(levelname)s] %(asctime)s - %(message)s'))
     logger.addHandler(stream)
 
     console = ConsoleHandler(console)
-    console.setLevel(logging.INFO)
+    console.setLevel(level)
     console.setFormatter(logging.Formatter(
         '[%(levelname)s] %(message)s'))
     logger.addHandler(console)
 
 
 def main():
+
+    if len(sys.argv) > 1 and '--debug' in sys.argv:
+        level = logging.DEBUG
+    else:
+        level = logging.INFO
+
     check_releases()
     UI = DisplotUi()
-    setup_logger(UI.console)
+    setup_logger(UI.console, level)
     UI.run()
 
 
