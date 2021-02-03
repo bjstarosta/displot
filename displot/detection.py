@@ -154,22 +154,22 @@ def detection(
         log.debug('ROW: {0}, COL: {1}'.format(row, col))
         Y_ = np.squeeze(Y_)
 
-        if i % 2 == 0:
+        if col % 2 == 0:
             x_i = col * stride[1]
         else:
             x_i = col * stride[1] - stride[1]
-        # print('x_i:', x_i)
+        log.debug('x_i: {0}'.format(x_i))
 
         if row % 2 == 0:
             y_i = row * stride[0]
-            # print('y_i:', y_i)
+            log.debug('y_i: {0}'.format(y_i))
             if i % 2 == 0:  # left
                 blob_l[y_i:y_i + hw[0], x_i:x_i + hw[1]] = Y_
             else:  # top
                 blob_t[y_i:y_i + hw[0], x_i:x_i + hw[1]] = Y_
         else:
             y_i = row * stride[0] - stride[0]
-            # print('y_i:', y_i)
+            log.debug('y_i: {0}'.format(y_i))
             if i % 2 == 0:  # bottom
                 blob_b[y_i:y_i + hw[0], x_i:x_i + hw[1]] = Y_
             else:  # right
