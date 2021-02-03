@@ -75,6 +75,12 @@ class DisplotDataFeature(object):
         self.y = y
         self.r = 10
         self.confidence = 1
+        self.isHidden = False
+
+    def __eq__(self, o):
+        if not isinstance(o, DisplotDataFeature):
+            return False
+        return (self.x == o.x and self.y == o.y and self.r == o.r)
 
     def fromDict(self, d):
         for attr, value in d.items():
@@ -85,7 +91,8 @@ class DisplotDataFeature(object):
             'x': self.x,
             'y': self.y,
             'r': self.r,
-            'confidence': self.confidence
+            'confidence': self.confidence,
+            'isHidden': self.isHidden
         }
 
 

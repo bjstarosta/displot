@@ -170,6 +170,31 @@
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="button_Discrimination">
+             <property name="toolTip">
+              <string>Will set all features not matching the discrimination parameters
+as hidden in the interface.</string>
+             </property>
+             <property name="text">
+              <string>Apply discrimination</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="button_RemoveHidden">
+             <property name="toolTip">
+              <string>Will remove all hidden features from the feature list. This is irreversible.</string>
+             </property>
+             <property name="text">
+              <string>Remove all hidden features</string>
+             </property>
+             <property name="icon">
+              <iconset resource="feathericons.qrc">
+               <normaloff>:/feathericons/3rdparty/feather/icons/alert-triangle.svg</normaloff>:/feathericons/3rdparty/feather/icons/alert-triangle.svg</iconset>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QScrollArea" name="imageToolsScroll">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">

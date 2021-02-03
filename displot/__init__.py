@@ -48,3 +48,23 @@ class Displot(object):
         ))
         log.info('Average prediction confidence: {:.3f}.'.format(tds[1]))
         self.data_obj.markers = tds[0]
+
+    def discrimination(self, *args, **kwargs):
+        if self.data_obj is None:
+            log.error('Data object is not loaded.')
+
+        if len(self.data_obj.markers) == 0:
+            log.info('There are no features currently defined. Nothing to do.')
+            return
+
+        tds = displot.detection.discrimination(*args, **kwargs)
+        for i, td in enumerate(self.data_obj.markers):
+            if td in tds[0]:
+                self.data_obj.markers[i].isHidden = False
+            else:
+                self.data_obj.markers[i].isHidden = True
+
+        log.info('Discrimination completed. Visible features: {0}.'.format(
+            len(tds[0])
+        ))
+        log.info('Avg. visible prediction confidence: {:.3f}.'.format(tds[1]))

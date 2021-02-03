@@ -125,6 +125,10 @@ class ImageTab(QtWidgets.QWidget, Displot):
 
         self.layout.button_Scan.clicked.connect(
             self._detection_ev)
+        self.layout.button_Discrimination.clicked.connect(
+            self._discrimination_ev)
+        self.layout.button_RemoveHidden.clicked.connect(
+            self.removeHiddenFeatures)
 
         self.syncFeaturesToUi()
 
@@ -305,7 +309,7 @@ class ImageTab(QtWidgets.QWidget, Displot):
         row = self.featureModel.rowCount()
         self.featureModel.addDataObject(feature)
         self.featureModel.insertRows(row, 1)
-        feature.show()
+        feature.update()
 
     def _addFeature_ev(self, e):
         """Mouse event handler.
@@ -358,6 +362,30 @@ class ImageTab(QtWidgets.QWidget, Displot):
         for feature in sel:
             self.removeFeature(feature)
 
+    def removeHiddenFeatures(self):
+        """Remove all hidden features from the UI.
+
+        This will search for all hidden rows in the table, and
+        remove all corresponding features and table rows from the list.
+
+        Note: This will not be reflected in the internal program storage until
+        syncFeaturesFromUi() is called.
+
+        Returns:
+            None
+
+        """
+        # have to use a separate list of features to remove, otherwise
+        # updating the model data while iterating the table messes up the
+        # iteration
+        hidden = []
+        for feature in self.featureModel.getModelData():
+            if feature.isHidden is True:
+                hidden.append(feature)
+
+        for feature in hidden:
+            self.removeFeature(feature)
+
     def removeAllFeatures(self):
         """Remove all features from the UI and reset the table model.
 
@@ -376,7 +404,7 @@ class ImageTab(QtWidgets.QWidget, Displot):
             None
 
         """
-        for feature in self.featureModel.modelData:
+        for feature in self.featureModel.getModelData():
             feature.show()
         self.featureModel.notifyAllChanged()
         self.featuresHidden = False
@@ -388,7 +416,7 @@ class ImageTab(QtWidgets.QWidget, Displot):
             None
 
         """
-        for feature in self.featureModel.modelData:
+        for feature in self.featureModel.getModelData():
             feature.hide()
         self.featureModel.notifyAllChanged()
         self.featuresHidden = True
@@ -400,7 +428,7 @@ class ImageTab(QtWidgets.QWidget, Displot):
             None
 
         """
-        for feature in self.featureModel.modelData:
+        for feature in self.featureModel.getModelData():
             if feature.isHidden is True:
                 feature.hide()
             else:
@@ -413,7 +441,7 @@ class ImageTab(QtWidgets.QWidget, Displot):
             None
 
         """
-        for feature in self.featureModel.modelData:
+        for feature in self.featureModel.getModelData():
             feature.highlight(False)
 
     def syncFeaturesToUi(self):
@@ -424,10 +452,15 @@ class ImageTab(QtWidgets.QWidget, Displot):
 
         """
         self.removeAllFeatures()
-        for f in self.data_obj.markers:
-            uif = ImageTabFeature(self)
-            uif.fromParent(f)
-            self.addFeature(uif)
+        for feature in self.data_obj.markers:
+            uifeature = ImageTabFeature(self)
+            uifeature.fromParent(feature)
+            self.addFeature(uifeature)
+
+            if uifeature.isHidden is True:
+                uifeature.hide()
+            else:
+                uifeature.show()
 
     def syncFeaturesFromUi(self):
         """Populate the internal data object with features defined in the UI.
@@ -437,14 +470,21 @@ class ImageTab(QtWidgets.QWidget, Displot):
 
         """
         self.data_obj.markers = []
-        for feature in self.featureModel.modelData:
+        for feature in self.featureModel.getModelData():
             self.data_obj.markers.append(feature.toParent())
 
     def _detection_ev(self):
         lt = self.layout
 
         lt.button_Scan.setEnabled(False)
+        lt.button_Discrimination.setEnabled(False)
+        lt.button_RemoveHidden.setEnabled(False)
         self._progressBar(0)
+
+        def ui_finished():
+            lt.button_Scan.setEnabled(True)
+            lt.button_Discrimination.setEnabled(True)
+            lt.button_RemoveHidden.setEnabled(True)
 
         weights = lt.value_MLModel.currentData()
         if weights is None:
@@ -480,9 +520,35 @@ class ImageTab(QtWidgets.QWidget, Displot):
         )
         worker.signals.progress.connect(self._progressBar)
         worker.signals.finished.connect(self.syncFeaturesToUi)
-        worker.signals.finished.connect(
-            lambda: lt.button_Scan.setEnabled(True)
+        worker.signals.finished.connect(ui_finished)
+        self.window.threadpool.start(worker)
+
+    def _discrimination_ev(self):
+        lt = self.layout
+
+        lt.button_Scan.setEnabled(False)
+        lt.button_Discrimination.setEnabled(False)
+        lt.button_RemoveHidden.setEnabled(False)
+        self._progressBar(0)
+
+        def ui_finished():
+            lt.button_Scan.setEnabled(True)
+            lt.button_Discrimination.setEnabled(True)
+            lt.button_RemoveHidden.setEnabled(True)
+
+        td_border = int(lt.marginToleranceSpinBox.cleanText())
+        td_overlap = int(lt.overlapToleranceSpinBox.cleanText())
+        pred_tolerance = float(lt.predictionThresholdDoubleSpinBox.cleanText())
+
+        worker = Worker(
+            self.discrimination,
+            self.data_obj.image, self.data_obj.markers,
+            td_border=td_border, td_overlap=td_overlap,
+            pred_tolerance=pred_tolerance
         )
+        worker.signals.progress.connect(self._progressBar)
+        worker.signals.finished.connect(self.syncFeaturesToUi)
+        worker.signals.finished.connect(ui_finished)
         self.window.threadpool.start(worker)
 
     def _progressBar(self, progress):

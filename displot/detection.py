@@ -56,6 +56,9 @@ def detection(
 
     """
     progress = 0
+    if (callable(_qt5signals.progress)
+    and hasattr(_qt5signals.progress, 'emit')):
+        _qt5signals.progress.emit(progress)  # 0%
 
     # Get rid of extraneous dimension.
     if len(image.shape) == 3:
@@ -119,10 +122,10 @@ def detection(
     log.info('Prediction complete.')
     log.debug('Y.shape: {0}'.format(Y.shape))
 
-    progress += 30
+    progress += 40
     if (callable(_qt5signals.progress)
     and hasattr(_qt5signals.progress, 'emit')):
-        _qt5signals.progress.emit(progress)  # 40%
+        _qt5signals.progress.emit(progress)  # 50%
 
     # Stitch the predictions into 4 separate blob images.
     # Find blobs as well while iterating over the predictions.
@@ -213,9 +216,12 @@ def detection(
             else:
                 pred = 0
 
-            c_y_ = c_y + (row * stride[0]) - padding[1]
-            c_x_ = c_x + (col * stride[1]) - padding[0]
-            tds.append((c_y_, c_x_, r, pred))
+            td = DisplotDataFeature()
+            td.x = c_x + (col * stride[1]) - padding[0]
+            td.y = c_y + (row * stride[0]) - padding[1]
+            td.r = r
+            td.confidence = pred
+            tds.append(td)
 
         # Blob detection ends here.
 
@@ -224,42 +230,77 @@ def detection(
             col = 0
             row += 1
 
-        progress += 40 / len(Y)
+        progress += 50 / len(Y)
         if (callable(_qt5signals.progress)
         and hasattr(_qt5signals.progress, 'emit')):
-            _qt5signals.progress.emit(progress)  # 80%
+            _qt5signals.progress.emit(progress)  # 100%
 
     log.info('Blob detection complete.')
     log.debug('TDs found initially: {0}'.format(len(tds)))
+
+    return discrimination(
+        image, tds,
+        td_border, td_overlap, pred_tolerance, 4, _qt5signals
+    )
+
+
+def discrimination(
+    image, tds=[],
+    td_border=3, td_overlap=2, pred_tolerance=0.33,
+    detect_samples=1,
+    _qt5signals=None
+):
+    """Perform discrimination on a list of dislocations.
+
+    Args:
+        image (numpy.ndarray): Image to read properties from.
+        tds (list): A list of DisplotDataFeature objects.
+        td_border (int): Remove all TDs within this many pixels of the border.
+        td_overlap (int): Allow this many pixels of overlap between blobs.
+        pred_tolerance (float): Prune all TDs below this confidence value.
+        detect_samples (int): Number of samples taken of the same image prior
+            to discrimination. In effect this allows the function to expect
+            this many overlapping features as standard, instead of treating
+            them as an aberration. The function then merges these features
+            together and averages their prediction confidence.
+
+    Returns:
+        tuple: (list of DisplotDataFeature, float: average pred. conf.)
+
+    """
+
+    progress = 0
+    if (callable(_qt5signals.progress)
+    and hasattr(_qt5signals.progress, 'emit')):
+        _qt5signals.progress.emit(progress)  # 0%
 
     tds_pruned = []
 
     log.info('Starting discrimination.')
     # First pass for bad candidates
     for i, td in enumerate(tds):
-        (y, x, r, pred) = td
-
         # Prune border TDs as they are largely artifacts
-        if (x <= td_border or x >= (image.shape[1] - td_border)
-        or y < td_border or y >= (image.shape[0] - td_border)):
+        if (td.x <= td_border or td.x >= (image.shape[1] - td_border)
+        or td.y < td_border or td.y >= (image.shape[0] - td_border)):
             continue
 
         # Prediction < 0.01 means pruned
-        if pred < 0.01:
+        if td.confidence < 0.01:
             continue
 
         tds_pruned.append(td)
 
-    progress += 10
+    progress += 50
     if (callable(_qt5signals.progress)
     and hasattr(_qt5signals.progress, 'emit')):
-        _qt5signals.progress.emit(progress)  # 90%
+        _qt5signals.progress.emit(progress)  # 50%
 
     # Second pass for prediction ranking
 
     # All dislocations should intersect four times with a very close neighbour
+    # if this function is being run immediately after prediction.
     # We find those four times and use the one with highest pred then average
-    # the pred.
+    # the pred confidence.
     tds_final = []
     tds_visited = []
     pred_avg = []
@@ -272,23 +313,28 @@ def detection(
 
         # find all overlapping TDs
         for j, td_ in enumerate(tds_pruned):
-            dx = td[1] - td_[1]
-            dy = td[0] - td_[0]
+            dx = td.x - td_.x
+            dy = td.y - td_.y
             d = np.hypot(dx, dy)
-            if d >= (td[2] + td_[2] - td_overlap):
+            if d >= (td.r + td_.r - td_overlap):
                 continue
 
             overlap_list.append(td_)
             tds_visited.append(j)
 
         # sort by prediction confidence
-        overlap_list = sorted(overlap_list, key=lambda x: x[3], reverse=True)
+        overlap_list = sorted(
+            overlap_list,
+            key=lambda x: x.confidence,
+            reverse=True
+        )
 
         # calculate averaged prediction confidence
         # prediction confidence should always be an average of 4 overlapping
-        overlap_list = overlap_list[:4]
-        overlap_list += [(None, None, None, 0)] * (4 - len(overlap_list))
-        pred = np.average([x[3] for x in overlap_list])
+        overlap_list = overlap_list[:detect_samples]
+        pred_list = [x.confidence for x in overlap_list]
+        pred_list += [0] * (detect_samples - len(overlap_list))
+        pred = np.average(pred_list)
 
         # prune all TDs below set prediction tolerance
         if pred < pred_tolerance:
@@ -296,12 +342,8 @@ def detection(
 
         # if we are here, it means TD looks valid and is added to the
         # output list.
-        o = DisplotDataFeature()
-        o.x = overlap_list[0][1]
-        o.y = overlap_list[0][0]
-        o.r = overlap_list[0][2]
-        o.confidence = pred
-        tds_final.append(o)
+        overlap_list[0].confidence = pred
+        tds_final.append(overlap_list[0])
         pred_avg.append(pred)
 
     progress = 100
