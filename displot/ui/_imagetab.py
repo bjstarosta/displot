@@ -511,7 +511,7 @@ class ImageTab(QtWidgets.QWidget, Displot):
 
         worker = Worker(
             self.detection,
-            self.data_obj.image, weights, model='fusionnet', stride=stride,
+            self.data_obj.image, weights, model=weights[0], stride=stride,
             min_r=min_r, max_r=max_r,
             min_sigma=min_sigma, max_sigma=max_sigma,
             num_sigma=num_sigma, threshold=threshold,
