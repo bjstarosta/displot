@@ -8,6 +8,7 @@ University of Strathclyde Physics Department
 import logging
 import displot.io
 import displot.detection
+import displot.tf
 
 log = logging.getLogger('displot')
 
@@ -25,6 +26,7 @@ class Displot(object):
 
     def __init__(self):
         self.data_obj = None
+        displot.tf.detect_gpu_support()
 
     def load_data(self, path):
         self.data_obj = displot.io.load_displot_data(path)
