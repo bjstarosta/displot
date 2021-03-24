@@ -7,6 +7,7 @@ University of Strathclyde Physics Department
 
 import logging
 import numpy as np
+import tensorflow as tf
 
 import displot.models as models
 import displot.weights as weights
@@ -55,3 +56,20 @@ def predict(X, model_id, weights_id):
         pred = np.squeeze(pred)
 
     return pred
+    
+    
+def detect_gpu_support():
+    """Output information about the state of GPU support to STDERR.
+
+    Returns:
+        None
+
+    """
+    if not tf.test.is_built_with_cuda():
+        log.warning("Tensorflow is not built with CUDA.")
+        return
+    pgpus = tf.config.list_physical_devices('GPU')
+    log.info(
+        "Physical GPUs: {0}".format(len(pgpus))
+    )
+
