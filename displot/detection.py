@@ -6,6 +6,9 @@ University of Strathclyde Physics Department
 """
 
 import logging
+import functools
+import multiprocessing as mp
+
 import numpy as np
 import skimage.feature
 
@@ -153,6 +156,7 @@ def detection(
 
     row = 0
     col = 0
+    bd_funcs = []
     for i, Y_ in enumerate(Y):
         log.debug('ROW: {0}, COL: {1}'.format(row, col))
         Y_ = np.squeeze(Y_)
@@ -178,62 +182,35 @@ def detection(
             else:  # right
                 blob_r[y_i:y_i + hw[0], x_i:x_i + hw[1]] = Y_
 
-        # Blob detection begins here.
-
-        # This line is what slows down this loop.
-        blobs_log = skimage.feature.blob_log(
+        bd_funcs.append(functools.partial(_blob_detect,
             Y_,
+            x_offset=(col * stride[1]) - padding[0],
+            y_offset=(row * stride[0]) - padding[1],
             min_sigma=min_sigma,
             max_sigma=max_sigma,
             num_sigma=num_sigma,
-            threshold=threshold
-        )
-
-        # Compute blob radius and clip its values.
-        blobs_log[:, 2] = np.clip(blobs_log[:, 2] * np.sqrt(2), min_r, max_r)
-
-        for c_y, c_x, r in blobs_log:
-            # Extract all pixel values within the blob radius.
-            c_y = int(c_y)
-            c_x = int(c_x)
-            r_i = int(r)
-            sq = Y_[c_y - r_i:c_y + r_i, c_x - r_i:c_x + r_i]
-
-            pred_n = 0
-            pred = 0
-            for sq_r, sq_r_ in enumerate(sq):
-                for sq_c, sq_c_ in enumerate(sq_r_):
-                    if (sq_r - r_i)**2 + (sq_c - r_i)**2 > r_i**2:
-                        continue
-                    pred += sq[sq_r, sq_c]
-                    pred_n += 1
-
-            # Average of pixel values within each blob radius is set as the
-            # prediction confidence of that marker. This is because the
-            # autoencoder delivers fainter blobs the more "unsure" it is.
-            if pred_n > 0:
-                pred = (pred / pred_n) / 255
-            else:
-                pred = 0
-
-            td = DisplotDataFeature()
-            td.x = c_x + (col * stride[1]) - padding[0]
-            td.y = c_y + (row * stride[0]) - padding[1]
-            td.r = r
-            td.confidence = pred
-            tds.append(td)
-
-        # Blob detection ends here.
+            threshold=threshold,
+            min_r=min_r,
+            max_r=max_r
+        ))
 
         col += 1
         if col >= n_col:
             col = 0
             row += 1
 
-        progress += 50 / len(Y)
-        if (callable(_qt5signals.progress)
-        and hasattr(_qt5signals.progress, 'emit')):
-            _qt5signals.progress.emit(progress)  # 100%
+        # progress += 50 / len(Y)
+
+    with mp.Pool() as pool:
+        bd_out = pool.map(_retcall, bd_funcs)
+
+    for i in bd_out:
+        tds.extend(i)
+
+    progress += 50
+    if (callable(_qt5signals.progress)
+    and hasattr(_qt5signals.progress, 'emit')):
+        _qt5signals.progress.emit(progress)  # 100%
 
     log.info('Blob detection complete.')
     log.debug('TDs found initially: {0}'.format(len(tds)))
@@ -354,3 +331,91 @@ def discrimination(
     log.info('Discrimination complete.')
     log.debug('TDs after pruning: {0}'.format(len(tds_final)))
     return tds_final, np.average(pred_avg)
+
+
+def _blob_detect(
+    im, x_offset, y_offset,
+    min_sigma, max_sigma, num_sigma, threshold,
+    min_r, max_r
+):
+    """Perform blob detection on an image data slice.
+
+    See: https://scikit-image.org/docs/dev/api/skimage.feature.html
+
+    Args:
+        im (numpy.ndarray): Image slice to detect blobs on.
+            Should be single channel greyscale for performance.
+        x_offset (int): X coordinate of the image slice on the full image
+            relative to its top left corner.
+        y_offset (int): X coordinate of the image slice on the full image
+            relative to its top left corner.
+        min_sigma (int): Blob detection parameter.
+            Minimum standard deviation for Gaussian kernel.
+        max_sigma (int): Blob detection parameter.
+            Maximum standard deviation for Gaussian kernel.
+        num_sigma (int): Blob detection parameter.
+            Number of intermediate values of standard deviations to consider
+            between min_sigma and max_sigma.
+        threshold (float): Blob detection parameter.
+            The absolute lower bound for scale space maxima. Local maxima
+            smaller than thresh are ignored. Reduce this to detect blobs
+            with less intensities.
+        min_r (int): Minimum blob radius.
+        max_r (int): Maximum blob radius.
+
+    Returns:
+        list: List of DisplotDataFeature objects containing positional
+            information about detected blobs.
+
+    """
+
+    tds = []
+
+    # This line is very slow.
+    blobs_log = skimage.feature.blob_log(
+        im,
+        min_sigma=min_sigma,
+        max_sigma=max_sigma,
+        num_sigma=num_sigma,
+        threshold=threshold
+    )
+
+    # Compute blob radius and clip its values.
+    blobs_log[:, 2] = np.clip(blobs_log[:, 2] * np.sqrt(2), min_r, max_r)
+
+    for c_y, c_x, r in blobs_log:
+        # Extract all pixel values within the blob radius.
+        c_y = int(c_y)
+        c_x = int(c_x)
+        r_i = int(r)
+        sq = im[c_y - r_i:c_y + r_i, c_x - r_i:c_x + r_i]
+
+        pred_n = 0
+        pred = 0
+        for sq_r, sq_r_ in enumerate(sq):
+            for sq_c, sq_c_ in enumerate(sq_r_):
+                if (sq_r - r_i)**2 + (sq_c - r_i)**2 > r_i**2:
+                    continue
+                pred += sq[sq_r, sq_c]
+                pred_n += 1
+
+        # Average of pixel values within each blob radius is set as the
+        # prediction confidence of that marker. This is because the
+        # autoencoder delivers fainter blobs the more "unsure" it is.
+        if pred_n > 0:
+            pred = (pred / pred_n) / 255
+        else:
+            pred = 0
+
+        td = DisplotDataFeature()
+        td.x = c_x + x_offset
+        td.y = c_y + y_offset
+        td.r = r
+        td.confidence = pred
+        tds.append(td)
+
+    return tds
+
+
+def _retcall(f):
+    return f()
