@@ -6,7 +6,7 @@ attrs @ file:///tmp/build/80754af9/attrs_1604765588209/work
 blinker==1.4
 brotlipy==0.7.0
 cachetools @ file:///tmp/build/80754af9/cachetools_1607706694405/work
-certifi==2020.12.5
+certifi==2022.12.7
 cffi @ file:///tmp/build/80754af9/cffi_1606255099073/work
 chardet @ file:///tmp/build/80754af9/chardet_1605303159953/work
 click==7.1.2
